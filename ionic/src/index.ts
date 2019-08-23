@@ -1,5 +1,1 @@
-import { Hello } from './hello';
-
-const h = new Hello().sayIt();
-
-console.log(h);
+export { IonicOnFhir } from './ionic-on-fhir';

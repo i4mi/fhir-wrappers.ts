@@ -5,10 +5,21 @@
     "main": "index.js",
     "scripts": {
         "clean": "rm -rf _bundles ionic-on-fhir ionic-on-fhir-esm",
-        "build": "npm run clean && tsc && tsc -m es6 --outDir ionic-on-fhir-esm && webpack"
+        "build": "npm run clean && tsc && tsc -m es6 --outDir ionic-on-fhir-esm"
     },
     "dependencies": {
+        "@angular/common": "^8.2.3",
+        "@angular/core": "^8.2.3",
+        "@angular/platform-browser": "^8.2.3",
+        "@i4mi/fhir_r4": "^1.0.0",
+        "@ionic-native/core": "^5.12.0",
+        "@ionic-native/in-app-browser": "^5.12.0",
+        "@ionic-native/secure-storage": "^5.12.0",
+        "@types/node": "^12.7.2",
         "awesome-typescript-loader": "^5.2.1",
+        "jssha": "^2.3.1",
+        "rxjs": "^6.5.2",
+        "tslint": "^5.19.0",
         "typescript": "^3.5.3",
         "uglifyjs-webpack-plugin": "^2.2.0",
         "webpack": "^4.39.2"

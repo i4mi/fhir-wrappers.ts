@@ -1,4 +1,4 @@
-var path = require("path");
+const path = require("path");
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 
 var PATHS = {
