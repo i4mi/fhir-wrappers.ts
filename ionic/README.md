@@ -66,17 +66,12 @@ After init before you can do any other action, you have to call authenticate on 
 
 myAuthFunction() {
     return new Promise((resolve, reject) => {
-        // if no networ, return no network error
-        if (this.networkService.networkState) {
-            // gets metadata xml from midata to know auth and token endpoint url
-            return this.midataLib.authenticate().then((response) => {
-                console.log(response);
-            }).catch((error) => {
-                console.error(error);
-            });
-        } else {
-            return reject(`MidataService, no connection`);
-        }
+        // gets metadata xml from midata to know auth and token endpoint url
+        return this.midataLib.authenticate().then((response) => {
+            console.log(response);
+        }).catch((error) => {
+            console.error(error);
+        });
     });
 }
 ```

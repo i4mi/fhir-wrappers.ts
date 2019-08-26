@@ -1,9 +1,9 @@
 {
     "name": "@i4mi/ionic-on-fhir",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "IONIC wrapper for the I4MI fhir library",
-    "main": "./ionic-on-fhir/src/index.js",
-    "files": ["./ionic-on-fhir/src"],
+    "main": "ionic-on-fhir/src/index.js",
+    "files": ["ionic-on-fhir/**/*"],
     "scripts": {
         "clean": "rm -rf aot ionic-on-fhir",
         "build": "npm run clean && npm run ngc",
