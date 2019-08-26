@@ -1,5 +1,7 @@
 const path = require("path");
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const helpers = require('./helpers');
+const webpack = require('webpack');
+const TerserPlugin = require('terser-webpack-plugin');
 
 var PATHS = {
     entryPoint: path.resolve(__dirname, 'src/index.ts'),
@@ -22,19 +24,25 @@ var config = {
         extensions: ['.ts', '.tsx', '.js']
     },
     devtool: 'source-map',
+    plugins     : [
+
+        // Workaround for Critical dependency 
+        // The request of a dependency is an expression in ./node_modules/@angular/core/fesm5/core.js
+        new webpack.ContextReplacementPlugin(
+            /\@angular(\\|\/)core(\\|\/)fesm5/,
+            helpers.root('./src'),
+            {}
+        )
+    ],
     optimization: {
         minimizer: [
             // we specify a custom UglifyJsPlugin here to get source maps in production
-            new UglifyJsPlugin({
-              cache: true,
-              parallel: true,
-              uglifyOptions: {
-                compress: false,
-                ecma: 6,
-                mangle: true
-              },
-              sourceMap: true
-            })
+            new TerserPlugin({
+                parallel: true,
+                terserOptions: {
+                  ecma: 6,
+                },
+              })
           ]
     },
     module: {

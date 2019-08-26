@@ -5,7 +5,7 @@
     "main": "index.js",
     "scripts": {
         "clean": "rm -rf _bundles ionic-on-fhir ionic-on-fhir-esm",
-        "build": "npm run clean && tsc && tsc -m es6 --outDir ionic-on-fhir-esm"
+        "build": "npm run clean && tsc && webpack"
     },
     "dependencies": {
         "@angular/common": "^8.2.3",
@@ -21,7 +21,6 @@
         "rxjs": "^6.5.2",
         "tslint": "^5.19.0",
         "typescript": "^3.5.3",
-        "uglifyjs-webpack-plugin": "^2.2.0",
         "webpack": "^4.39.2"
     },
     "repository": {
@@ -45,6 +44,7 @@
         "oAuth2"
     ],
     "devDependencies": {
+        "terser-webpack-plugin": "^1.4.1",
         "webpack-cli": "^3.3.7"
     }
 }

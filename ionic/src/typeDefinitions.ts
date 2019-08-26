@@ -46,7 +46,6 @@ export interface AuthResponse {
  */
 export interface TokenExchangeRequest {
     token_url: string; // url for token
-    grant_type: 'authorization_code'; // Fixed value: authorization_code
     code: string; // Code that the app received from the authorization server
     redirect_uri: string; // The same redirect_uri used in the initial authorization request
     client_id: string; // Required for public apps. Omit for confidential apps.

@@ -6,14 +6,34 @@ import { HttpParams } from '@angular/common/http';
 
 const jsSHA = require('jssha');
 
-
 export class IonicOnFhir {
     // plugins, libs and interfaces
     apiCallArgs: ApiCallArgs;
     authWindow: InAppBrowserObject;
-    authRequestParams: AuthRequest;
-    authResponseParams: AuthResponse;
-    tokenExchangeParams: TokenExchangeRequest;
+    authRequestParams: AuthRequest = {
+        client_id: '',
+        auth_url: '',
+        response_type: 'code',
+        redirect_uri: '',
+        state: '',
+        scope: '',
+        aud: ''
+    };
+    authResponseParams: AuthResponse = {
+        access_token: '',
+        expires_in: 0,
+        patient: '',
+        refresh_token: '',
+        scope: '',
+        state: '',
+        token_type: 'Bearer'
+    };
+    tokenExchangeParams: TokenExchangeRequest = {
+        client_id: '',
+        code: '',
+        redirect_uri: '',
+        token_url: ''
+    };
 
     // urls
     conformanceStatementUrl: string;
@@ -34,6 +54,11 @@ export class IonicOnFhir {
 
         this.authRequestParams.scope = 'user/*.*';
         this.authRequestParams.aud = '/fhir';
+    }
+
+    initIonicOnFhir() {
+        this.authRequestParams.client_id = this.clientId;
+        this.tokenExchangeParams.client_id = this.clientId;
     }
 
     /**
@@ -115,7 +140,7 @@ export class IonicOnFhir {
                 // creates auth url
                 let authUrl = `${this.authRequestParams.auth_url}` +
                     `?response_type=${this.authRequestParams.response_type}` +
-                    `&client_id=${this.authRequestParams.response_type}` +
+                    `&client_id=${this.authRequestParams.client_id}` +
                     `&redirect_uri=${this.authRequestParams.redirect_uri}` +
                     `&aud=${this.authRequestParams.aud}` +
                     `&scope=${this.authRequestParams.scope}` +
@@ -190,8 +215,8 @@ export class IonicOnFhir {
             if (response.status === 200) {
                 // override body with parsed response
                 // todo --> try to map oject from lib
-                response.body = JSON.parse(response.body);
-                resolve(response);
+                // response.body = JSON.parse(response.body);
+                resolve(response.body);
             } else {
                 reject(response);
             }
@@ -232,16 +257,18 @@ export class IonicOnFhir {
     private exchangeTokenForCode(): Promise<any> {
         return new Promise((resolve, reject) => {
             const addTokenExchangeRequestPayload = (): TokenRequest => {
-                const tokenRequestParams = new HttpParams();
+                let tokenRequestParams = new HttpParams();
 
-                if (typeof this.tokenExchangeParams.redirect_uri === 'undefined') {
+                if (this.tokenExchangeParams.redirect_uri === '') {
                     this.tokenExchangeParams.redirect_uri = (this.authRequestParams.redirect_uri) ? this.authRequestParams.redirect_uri : 'http://localhost/callback';
                 }
 
-                tokenRequestParams.append('grant_type', this.tokenExchangeParams.grant_type);
-                tokenRequestParams.append('code', this.tokenExchangeParams.code);
-                tokenRequestParams.append('redirect_uri', this.tokenExchangeParams.redirect_uri);
-                tokenRequestParams.append('client_id', this.tokenExchangeParams.client_id);
+                tokenRequestParams = tokenRequestParams.append('grant_type', 'authorization_code');
+                tokenRequestParams = tokenRequestParams.append('code', this.tokenExchangeParams.code);
+                tokenRequestParams = tokenRequestParams.append('redirect_uri', this.tokenExchangeParams.redirect_uri);
+                tokenRequestParams = tokenRequestParams.append('client_id', this.tokenExchangeParams.client_id);
+
+                console.warn('Token request param', tokenRequestParams.toString());
 
                 return { encodedParams: tokenRequestParams };
             };
@@ -260,7 +287,7 @@ export class IonicOnFhir {
                     }).then((response: ApiCallResponse) => {
                         return this.interpretTokenResponse(response);
                     }).then((response) => {
-                        res(response.body);
+                        res(response);
                     }).catch((error) => {
                         rej(error);
                     });
