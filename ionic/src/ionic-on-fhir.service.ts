@@ -1,9 +1,10 @@
-import { apiCall, ApiCallArgs, ApiCallResponse, HttpMethod } from '@i4mi/fhir_r4';
+import { apiCall, ApiCallArgs, ApiCallResponse, HttpMethod, ApiMethods, ApiConfig } from '@i4mi/fhir_r4';
 import { InAppBrowser, InAppBrowserObject } from '@ionic-native/in-app-browser/ngx';
 import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage/ngx';
-import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY } from './ionic-on-fhir.types';
+import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY, InAppBrowserSettings } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { DomainResource, Resource } from '@i4mi/fhir_r4/dist/definition';
 
 const jsSHA = require('jssha');
 
@@ -12,9 +13,9 @@ const jsSHA = require('jssha');
 })
 export class IonicOnFhirService {
     // plugins, libs and interfaces
-    apiCallArgs: ApiCallArgs;
-    authWindow: InAppBrowserObject;
-    authRequestParams: AuthRequest = {
+    private apiCallArgs: ApiCallArgs;
+    private authWindow: InAppBrowserObject;
+    private authRequestParams: AuthRequest = {
         client_id: '',
         auth_url: '',
         response_type: 'code',
@@ -23,7 +24,7 @@ export class IonicOnFhirService {
         scope: '',
         aud: ''
     };
-    authResponseParams: AuthResponse = {
+    private authResponseParams: AuthResponse = {
         access_token: '',
         expires_in: 0,
         patient: '',
@@ -32,7 +33,7 @@ export class IonicOnFhirService {
         state: '',
         token_type: 'Bearer'
     };
-    tokenExchangeParams: TokenExchangeRequest = {
+    private tokenExchangeParams: TokenExchangeRequest = {
         client_id: '',
         code: '',
         redirect_uri: '',
@@ -40,14 +41,23 @@ export class IonicOnFhirService {
     };
 
     // urls
-    conformanceStatementUrl: string;
-    fhirServerUrl: string;
+    private conformanceStatementUrl: string;
+    private fhirServerUrl: string;
 
     // temp state for auth
-    stateHash: string;
+    private stateHash: string;
 
-    // storage and temp
-    storage: SecureStorageObject;
+    // storage
+    private storage: SecureStorageObject;
+
+    // settings for iab
+    private iabSettings: Array<InAppBrowserSettings>;
+
+    // params to get for user
+    private loggedIn: boolean = false;
+
+    // api methods
+    private apiMethods: ApiMethods;
 
     constructor(private iab: InAppBrowser,
                 private secStorage: SecureStorage) {
@@ -55,9 +65,10 @@ export class IonicOnFhirService {
     }
 
     /**
-     * First to call
-     * @param fhirServerUrl asd
-     * @param clientId fgh
+     * First to call.
+     * Set values the library needs for the authentication process.
+     * @param fhirServerUrl The url to the server (for example test.midata.coop)
+     * @param clientId App name given to the auth request as client id
      */
     initIonicOnFhir(fhirServerUrl: string, clientId: string) {
         this.fhirServerUrl = fhirServerUrl;
@@ -67,6 +78,24 @@ export class IonicOnFhirService {
 
         this.authRequestParams.scope = 'user/*.*';
         this.authRequestParams.aud = '/fhir';
+
+        this.apiMethods = new ApiMethods();
+    }
+
+    /**
+     * Checks if user is logged in
+     * @returns boolean (true if logged in)
+     */
+    isLoggedIn(): boolean {
+        return this.loggedIn;
+    }
+
+    /**
+     * Config params for in app browser as array<{key:value}>
+     * Call when you do not want default settings
+     */
+    configInAppBrowser(settings: Array<InAppBrowserSettings>) {
+        this.iabSettings = settings;
     }
 
     /**
@@ -97,10 +126,12 @@ export class IonicOnFhirService {
     }
 
     /**
-     * 
+     * Authenticate someone over oAuth2
+     * @returns Promise<any> -
+     * if success: returns auth response (type AuthResponse) and saves response to secure storage  
+     * else: error message
      */
     authenticate(): Promise<any> {
-
         this.authRequestParams.redirect_uri = 'http://localhost/callback';
 
         // function that executes the authentication
@@ -108,9 +139,25 @@ export class IonicOnFhirService {
         // @returns error on rejectu
         const doAuthentication = (url: string): Promise<any> => {
             return new Promise((resolve, reject) => {
-                let autoClose = false;
+                if (typeof this.fhirServerUrl === 'undefined') {
+                    reject('Ionic On FHIR: Plase call initIonicOnFhir first to define the necessairy configurations');
+                }
 
-                this.authWindow = this.iab.create(url, '_blank', 'location=no,clearcache=yes');
+                let autoClose = false;
+                let effectiveIabSettings = 'location=no,clearcache=yes';
+                if (typeof this.iabSettings !== undefined) {
+                    effectiveIabSettings = '';
+                    this.iabSettings.forEach((setting, index) => {
+                        effectiveIabSettings += `${setting.key}=${setting.value}`;
+
+                        // if not last element, add ','
+                        if (index !== this.iabSettings.length -1) {
+                            effectiveIabSettings += ',';
+                        }
+                    });
+                }
+
+                this.authWindow = this.iab.create(url, '_blank', effectiveIabSettings);
                 // subscribe loadstart event to show iab
                 this.authWindow.on('loadstart').subscribe((event) => {
                     this.authWindow.show();
@@ -175,6 +222,141 @@ export class IonicOnFhirService {
     }
 
     /**
+     * Destroys all auth information from storage
+     * and sets logged in to false
+     */
+    logout(): Promise<any> {
+        this.loggedIn = false;
+        return new Promise((resolve, reject) => {
+            this.storage.remove(AUTH_RES_KEY).then((res) => {
+                resolve(res);
+            }).catch((error) => {
+                reject(error);
+            })
+        });
+    }
+
+    /**
+     * Creates a resource
+     * on the fhir server
+     * @param resource resource to save
+     * @returns resolve of resource as JSON if status 200 or 201
+     * @returns reject every other case with message
+     */
+    create(resource: DomainResource | any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.storage.get(AUTH_RES_KEY).then((res) => {
+                // checks if logged in and has auth token
+                if (!this.loggedIn && !res) {
+                    reject('Not logged in');
+                }
+
+                // configs parameters according apimethods
+                const authParams: AuthResponse = JSON.parse(res);
+                const config: ApiConfig = {
+                    access_token: authParams.access_token,
+                    authorization_type: 'Bearer',
+                    base_url: `${this.fhirServerUrl}/fhir`
+                }
+
+                // calls create of apimethods
+                this.apiMethods.create(resource, config).then((response) => {
+                    if (response.status === 200 || response.status === 201)
+                        resolve(response.body);
+                    else  
+                        reject(response);
+                }).catch((error) => {
+                    reject(error);
+                });
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Updates a resource
+     * on the fhir server
+     * @param resource resource to update
+     * @returns resolve of resource as JSON if status 200 or 201
+     * @returns reject every other case with message
+     */
+    update(resource: Resource | any): Promise<any> {
+        return new Promise((resolve, reject) => {
+                    // checks if resource has id
+            if (typeof resource.id === 'undefined' &&
+                typeof resource._id === 'undefined') {
+
+                reject('Resource has no id');
+            }
+            this.storage.get(AUTH_RES_KEY).then((res) => {
+                // checks if logged in and has auth token
+                if (!this.loggedIn && !res) {
+                    reject('Not logged in');
+                }
+
+                // configs parameters according apimethods
+                const authParams: AuthResponse = JSON.parse(res);
+                const config: ApiConfig = {
+                    access_token: authParams.access_token,
+                    authorization_type: 'Bearer',
+                    base_url: `${this.fhirServerUrl}/fhir`
+                }
+
+                // calls update of apimethods
+                this.apiMethods.update(resource, config).then((response) => {
+                    if (response.status === 200 || response.status === 201)
+                        resolve(response.body);
+                    else  
+                        reject(response);
+                }).catch((error) => {
+                    reject(error);
+                });
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Searches for one or multiple resources
+     * @param resourceType resource type to look up 
+     * @param params search parameters according fhir resource guide$
+     * @returns resolve of resource as JSON if status 200 or 201
+     * @returns reject every other case with message
+     */
+    search(resourceType: string, params: any): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.storage.get(AUTH_RES_KEY).then((res) => {
+                // checks if logged in and has auth token
+                if (!this.loggedIn && !res) {
+                    reject('Not logged in');
+                }
+
+                // configs parameters according apimethods
+                const authParams: AuthResponse = JSON.parse(res);
+                const config: ApiConfig = {
+                    access_token: authParams.access_token,
+                    authorization_type: 'Bearer',
+                    base_url: `${this.fhirServerUrl}/fhir`
+                }
+
+                // calls search of apimethods
+                this.apiMethods.search(params, resourceType, config).then((response) => {
+                    if (response.status === 200 || response.status === 201)
+                        resolve(response.body);
+                    else  
+                        reject(response);
+                }).catch((error) => {
+                    reject(error);
+                });
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+    
+    /**
      * Makes api call to get the auth and token url
      * from the fhir/midatata of the server.
      * Returns a json response with a resource in the .body
@@ -209,22 +391,6 @@ export class IonicOnFhirService {
                 this.tokenExchangeParams.token_url = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
                 this.authRequestParams.auth_url = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
                 resolve(response);
-            } else {
-                reject(response);
-            }
-        });
-    }
-
-    /**
-     * function that interprets the result of the api request
-     */
-    private interpretTokenResponse = (response: ApiCallResponse): Promise<any> => {
-        return new Promise((resolve, reject) => {
-            if (response.status === 200) {
-                // override body with parsed response
-                // todo --> try to map oject from lib
-                // response.body = JSON.parse(response.body);
-                resolve(response.body);
             } else {
                 reject(response);
             }
@@ -281,7 +447,7 @@ export class IonicOnFhirService {
                 return { encodedParams: tokenRequestParams };
             };
 
-            const exchangeToken = (): Promise<ApiCallResponse> => {
+            const exchangeToken = (): Promise<AuthResponse | any> => {
                 return new Promise((res, rej) => {
                     apiCall({
                         url: this.tokenExchangeParams.token_url,
@@ -293,16 +459,18 @@ export class IonicOnFhirService {
                         payload: addTokenExchangeRequestPayload().encodedParams.toString(),
                         jsonEncoded: false
                     }).then((response: ApiCallResponse) => {
+                        // returns body of response (so the AuthResponse)
                         return this.interpretTokenResponse(response);
-                    }).then((response) => {
-                        res(response);
+                    }).then((response: AuthResponse) => {
+                        res(response as AuthResponse);
                     }).catch((error) => {
                         rej(error);
                     });
                 });
             };
 
-            exchangeToken().then((response) => {
+            // from here on only response
+            exchangeToken().then((response: AuthResponse) => {
                 return this.saveAuthResponse(response);
             }).then((response) => {
                 resolve(response);
@@ -314,12 +482,26 @@ export class IonicOnFhirService {
     }
 
     /**
+     * function that interprets the result of the api request
+     */
+    private interpretTokenResponse = (response: ApiCallResponse): Promise<AuthResponse | any> => {
+        return new Promise((resolve, reject) => {
+            if (response.status === 200) {
+                // todo --> try to map oject from lib
+                resolve(response.body as AuthResponse);
+            } else {
+                reject(response);
+            }
+        });
+    }
+
+    /**
      * Saves given response body in the secure storage
      */
-    private saveAuthResponse(response: ApiCallResponse): Promise<any> {
+    private saveAuthResponse(response: AuthResponse): Promise<any> {
         return new Promise((resolve, reject) => {
             this.checkIfDeviceSecure().then(() => {
-                this.storage.set(AUTH_RES_KEY, JSON.stringify(response.body)).then(() => {
+                this.storage.set(AUTH_RES_KEY, JSON.stringify(response)).then(() => {
                     resolve(response);
                 }).catch((error) => {
                     reject(error);

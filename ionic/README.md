@@ -61,7 +61,6 @@ myInitFunction() {
 
 ### Authenticate
 After init before you can do any other action, you have to call authenticate on the server configured:
-**IN PROGRESS**
 ```typescript
 ...
 
@@ -82,6 +81,20 @@ myAuthFunction() {
 }
 ```
 
+### Search
+Searching for a fhir resource
+```typescript
+...
+mySearch() {
+    this.midataLib('Observation', { id: '123131231asfdasd21813' }).then((response) => {
+        // response is now the server response with the resource in the body
+        // only if status is 20X
+    }).catch((error) => {
+        // all errors get rejected until we are here. so you can/have to handle everything that can get wrong here.
+        // everything other than status 20X
+    });
+}
+```
 
 Wrapper for the I4MI fhir-resource-r4 library.  
 This library handles the oAuth 2.0 process for an `ionic 4` app.

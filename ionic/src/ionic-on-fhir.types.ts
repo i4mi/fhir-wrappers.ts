@@ -60,6 +60,58 @@ export interface TokenRequest {
 
 export const AUTH_RES_KEY = 'AUTH_RES';
 
+export interface InAppBrowserSettings {
+    key: InAppBrowserSettingsAll | InAppBrowserSettingsAndroid | InAppBrowserSettingsIos,
+    value: string
+}
 
+/**
+ * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
+ */
+export enum InAppBrowserSettingsAll {
+    location = 'location',
+    hidden = 'hidden',
+    beforeload = 'beforeload',
+    clearcache = 'clearcache',
+    clearsessioncache = 'clearsessioncache',
+    closebuttoncolor = 'closebuttoncolor',
+    closebuttoncaption = 'closebuttoncaption',
+    hidenavigationbuttons = 'hidenavigationbuttons',
+    navigationbuttoncolor = 'navigationbuttoncolor',
+    toolbarcolor = 'toolbarcolor',
+    mediaPlaybackRequiresUserAction = 'mediaPlaybackRequiresUserAction',
+}
 
+/**
+ * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
+ */
+export enum InAppBrowserSettingsAndroid {
+    footer = 'footer',
+    footercolor = 'footercolor',
+    hardwareback = 'hardwareback',
+    hideurlbar = 'hideurlbar',
+    lefttoright = 'lefttoright',
+    zoom = 'zoom',
+    shouldPauseOnSuspend = 'shouldPauseOnSuspend',
+    useWideViewPort = 'useWideViewPort'
+}
 
+/**
+ * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
+ */
+export enum InAppBrowserSettingsIos {
+    usewkwebview = 'usewkwebview',
+    cleardata = 'cleardata',
+    disallowoverscroll = 'disallowoverscroll',
+    toolbar = 'toolbar',
+    toolbartranslucent = 'toolbartranslucent',
+    lefttoright = 'lefttoright',
+    enableViewportScale = 'enableViewportScale',
+    allowInlineMediaPlayback = 'allowInlineMediaPlayback',
+    keyboardDisplayRequiresUserAction = 'keyboardDisplayRequiresUserAction',
+    suppressesIncrementalRendering = 'suppressesIncrementalRendering',
+    presentationstyle = 'presentationstyle',
+    transitionstyle = 'transitionstyle',
+    toolbarposition = 'toolbarposition',
+    hidespinner = 'hidespinner'
+}
