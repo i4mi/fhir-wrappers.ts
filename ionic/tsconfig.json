@@ -1,20 +1,22 @@
 {
     "compilerOptions": {
-      "moduleResolution": "node",
-      "module": "commonjs",
+      "module": "es2015",
       "target": "es5",
-      "lib": [ "es2015", "dom" ],
-      "outDir": "ionic-on-fhir",
-      "allowSyntheticDefaultImports": true,
-      "suppressImplicitAnyIndexErrors": true,
-      "forceConsistentCasingInFileNames": true,
+      "moduleResolution": "node",
       "sourceMap": true,
+      "inlineSources": true,
       "declaration": true,
-      "jsx": "react"
+      "noImplicitAny": false,
+      "experimentalDecorators": true,
+      "lib": ["dom", "es2015"],
+      "outDir": "ionic-on-fhir"
     },
-    "files": [
-      "./src/index.ts"
+    "exclude": [
+      "node_modules",
+      "ionic-on-fhir"
     ],
-    "compileOnSave": false,
-    "buildOnSave": false
+    "angularCompilerOptions": {
+      "genDir": "aot"
+    }
   }
+  

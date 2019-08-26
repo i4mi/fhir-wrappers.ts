@@ -1,12 +1,16 @@
 import { apiCall, ApiCallArgs, ApiCallResponse, HttpMethod } from '@i4mi/fhir_r4';
 import { InAppBrowser, InAppBrowserObject } from '@ionic-native/in-app-browser/ngx';
 import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage/ngx';
-import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY } from './typeDefinitions';
+import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
+import { Injectable } from '@angular/core';
 
 const jsSHA = require('jssha');
 
-export class IonicOnFhir {
+@Injectable({
+    providedIn: 'root'
+})
+export class IonicOnFhirService {
     // plugins, libs and interfaces
     apiCallArgs: ApiCallArgs;
     authWindow: InAppBrowserObject;
@@ -37,6 +41,7 @@ export class IonicOnFhir {
 
     // urls
     conformanceStatementUrl: string;
+    fhirServerUrl: string;
 
     // temp state for auth
     stateHash: string;
@@ -44,21 +49,24 @@ export class IonicOnFhir {
     // storage and temp
     storage: SecureStorageObject;
 
-    constructor(private fhirServerUrl: string,
-                private clientId: string,
-                private iab: InAppBrowser,
+    constructor(private iab: InAppBrowser,
                 private secStorage: SecureStorage) {
 
-        this.authRequestParams.client_id = this.clientId;
-        this.tokenExchangeParams.client_id = this.clientId;
+    }
+
+    /**
+     * First to call
+     * @param fhirServerUrl asd
+     * @param clientId fgh
+     */
+    initIonicOnFhir(fhirServerUrl: string, clientId: string) {
+        this.fhirServerUrl = fhirServerUrl;
+
+        this.authRequestParams.client_id = clientId;
+        this.tokenExchangeParams.client_id = clientId;
 
         this.authRequestParams.scope = 'user/*.*';
         this.authRequestParams.aud = '/fhir';
-    }
-
-    initIonicOnFhir() {
-        this.authRequestParams.client_id = this.clientId;
-        this.tokenExchangeParams.client_id = this.clientId;
     }
 
     /**
