@@ -60,6 +60,8 @@ myInitFunction() {
 ### Misc config before auth
 There are some configuration possibilities, which you can/have-to use before the authentication process starts.
 Possible functions:  
+
+
 | Function           | Params                            | Description |  
 | ---                | ---                               | --- |  
 | configInAppBrowser | `Array<{ key: 'X', value: 'Y' }>` | Customize your in app browser with your own config! Look up all keys @ [the documentation](https://github.com/apache/cordova-plugin-inappbrowser)      |  
@@ -160,3 +162,7 @@ Create a new issue with the label ![][~ionic].
 [~ionic]: https://img.shields.io/static/v1?label=-->&message=IONIC&color=blue
 
 
+| Command | Description |
+| --- | --- |
+| git status | List all new or modified files |
+| git diff | Show file differences that haven't been staged |
