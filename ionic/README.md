@@ -60,12 +60,12 @@ myInitFunction() {
 ### Misc config before auth
 There are some configuration possibilities, which you can/have-to use before the authentication process starts.
 Possible functions:  
-| Function | Params | Description |
-| --- | --- | --- |
-| configInAppBrowser | Array<{ key: 'X', value: 'Y' }> | Customize your in app browser with your own config! Look up all keys @ [the documentation](https://github.com/apache/cordova-plugin-inappbrowser) |
-| differentiateConformanceStatementUrl | url as string | If the url where to get the conformance statement (auth n token url) diverges from the pattern `[fhirServerUrl]/fhir/metadata` you have to set it here |
-| differentiateScope | scope as string | If you want another scope than `user/*.*`, here is the function for it |
-| differentiateAud | aud as string | If the url for your api calls diverges from `/fhir` here is the function to set it |
+| Function           | Params                            | Description |  
+| ---                | ---                               | --- |  
+| configInAppBrowser | `Array<{ key: 'X', value: 'Y' }>` | Customize your in app browser with your own config! Look up all keys @ [the documentation](https://github.com/apache/cordova-plugin-inappbrowser)      |  
+| differentiateConformanceStatementUrl | url as string   | If the url where to get the conformance statement (auth n token url) diverges from the pattern `[fhirServerUrl]/fhir/metadata` you have to set it here |  
+| differentiateScope | scope as string                   | If you want another scope than `user/*.*`, here is the function for it                                                                                     |  
+| differentiateAud   | aud as string                     | If the url for your api calls diverges from `/fhir` here is the function to set it                                                                     |
 
 
 
@@ -157,6 +157,6 @@ Go to the global repo issue site
 
 Create a new issue with the label ![][~ionic].
 
-[~ionic]: https://img.shields.io/static/v1?label=<LABEL>&message=<IONIC>&color=<blue>
+[~ionic]: https://img.shields.io/static/v1?label=-->&message=IONIC&color=blue
 
 
