@@ -160,9 +160,3 @@ Go to the global repo issue site
 Create a new issue with the label ![][~ionic].
 
 [~ionic]: https://img.shields.io/static/v1?label=-->&message=IONIC&color=blue
-
-
-| Command | Description |
-| --- | --- |
-| git status | List all new or modified files |
-| git diff | Show file differences that haven't been staged |
