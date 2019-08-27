@@ -93,6 +93,8 @@ export class IonicOnFhirService {
     /**
      * Config params for in app browser as array<{key:value}>
      * Call when you do not want default settings
+     * @param settings: Array<InAppBrowserSettings> Array of inappbrowser settings. Documented here:
+     * https://github.com/apache/cordova-plugin-inappbrowser
      */
     configInAppBrowser(settings: Array<InAppBrowserSettings>) {
         this.iabSettings = settings;
@@ -243,7 +245,7 @@ export class IonicOnFhirService {
      * @returns resolve of resource as JSON if status 200 or 201
      * @returns reject every other case with message
      */
-    create(resource: DomainResource | any): Promise<any> {
+    create(resource: Resource | any): Promise<any> {
         return new Promise((resolve, reject) => {
             this.storage.get(AUTH_RES_KEY).then((res) => {
                 // checks if logged in and has auth token

@@ -11,10 +11,10 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/i4mi/fhir-wrappers.ts"
+        "url": "https://github.com/i4mi/fhir-wrappers.ts/tree/master/ionic"
     },
     "bugs": {
-        "url": "https://github.com/i4mi/fhir-wrappers.ts/issues"
+        "url": "https://github.com/i4mi/fhir-wrappers.ts/issues/new"
     },
     "author": {
         "name": "Gabriel Hess, Stefan Iseli @ Institute for Medical Informatics (I4MI) - Bern University of Applied Sciences (BFH)",
