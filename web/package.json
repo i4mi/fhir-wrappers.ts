@@ -1,13 +1,14 @@
 {
-    "name": "@i4mi/web-on-fhir",
+    "name": "@i4mi/js-on-fhir",
     "version": "0.0.1",
     "description": "WEB wrapper for the I4MI fhir library",
     "main": "index.js",
     "scripts": {
-        "clean": "rm -rf _bundles web-on-fhir web-on-fhir-esm",
-        "build": "npm run clean && tsc && tsc -m es6 --outDir web-on-fhir-esm && webpack"
+        "clean": "rm -rf _bundles js-on-fhir js-on-fhir-esm",
+        "build": "npm run clean && tsc && tsc -m es6 --outDir js-on-fhir-esm && webpack"
     },
     "dependencies": {
+        "@i4mi/fhir_r4": "^1.0.0",
         "awesome-typescript-loader": "^5.2.1",
         "typescript": "^3.5.3",
         "uglifyjs-webpack-plugin": "^2.2.0",
