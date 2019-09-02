@@ -1,12 +1,13 @@
-import { apiCall, HttpMethod, ApiCallResponse } from '@i4mi/fhir_r4';
+import { apiCall, HttpMethod, ApiMethods } from '@i4mi/fhir_r4';
 import { AuthRequest, AuthResponse, TokenExchangeRequest } from './typeDefinitions';
 
 export class JSOnFhir {
+  private apiMethods = new ApiMethods;
   private urls = {
     service: '',
-    conformance: '', // TODO: needs setter
+    conformance: '',
     auth: '',
-    redirect: '', // TODO: needs setter
+    redirect: '',
     token: ''
   }
   private settings = {
@@ -14,10 +15,11 @@ export class JSOnFhir {
     patient: '',
     scope: '',
     state: '',
-    language: 'de',       // TODO: needs setter
+    language: 'de',
+    fhirVersion: '',
     responseType: 'code'
   }
-  private access = {
+  private auth = {
     token: '',
     expires: 0,
     type: '',
@@ -41,6 +43,7 @@ export class JSOnFhir {
         // assign prototype to the object loaded from storage, so it becomes
         // a full JSOnFhir object with functions
         persisted.__proto__ = JSOnFhir.prototype;
+        persisted.apiMethods = new ApiMethods();
         return persisted;
       }
     }
@@ -81,6 +84,7 @@ export class JSOnFhir {
       console.warn("error fetching auth statement", err);
     })
   }
+
 
   /**
   * This function handles the response from the authentification server, after the
@@ -123,17 +127,19 @@ export class JSOnFhir {
             jsonBody: true,
             payload: data,
             jsonEncoded: false
-          }).then((response: ApiCallResponse) => {
+          }).then((response) => {
             if(response.status === 200){
-              this.access.token = response.body.access_token;
-              this.access.expires = Date.now() + response.body.expires_in - 10000;
-              this.access.type = response.body.token_type;
+              this.auth.token = response.body.access_token;
+              this.auth.expires = Date.now() + 1000 * response.body.expires_in;
+              this.auth.type = response.body.token_type;
+              this.auth.refreshToken = response.body.refresh_token;
               this.settings.patient = response.body.patient;
-              this.access.refreshToken = response.body.refresh_token;
+
               this.persistMe();
 
               // reset the url so we don't run into misinterpreting the same code later again
-              window.location.search = '';
+              history.pushState({}, null, this.urls.redirect);
+
               resolve(response.body);
             }
             else {
@@ -155,6 +161,174 @@ export class JSOnFhir {
 
 
   /**
+  * Checks if a token is set and not expired
+  * @returns boolean (true if non-expired token set)
+  */
+  isLoggedIn(){
+    return (this.auth.token != '' && this.auth.expires > Date.now());
+  }
+
+
+  /**
+  * Logs out the user by deleting the authentification information
+  */
+  logout() {
+    this.settings.patient = '',
+    this.auth = {
+      token: '',
+      expires: 0,
+      type: '',
+      refreshToken: ''
+    };
+    this.persistMe();
+  }
+
+  /**
+  * Gets a new token from the oAuth server, using a given refreshToken
+  * @param refreshToken the refreshToken, as received from the response of
+  *                     handleAuthResponse()
+  * @returns TODO
+  */
+  refreshToken(refreshToken: string){
+    // TODO
+    throw("not yet implemented");
+  }
+
+
+  /**
+  * Creates a resource on the fhir server
+  * @param resource resource to save
+  * @returns resolve of resource as JSON if status 200 or 201
+  * @returns reject every other case with message
+  */
+  create(resource){
+    return new Promise((resolve, reject) => {
+      if(!this.isLoggedIn()){
+        reject('Not logged in');
+      }
+
+      const config = {
+        access_token: this.auth.token,
+        authorization_type: this.auth.type,
+        base_url: this.urls.service
+      }
+
+      // call create of apimethods
+      this.apiMethods.create(resource, config).then((response) => {
+        if (response.status === 200 || response.status === 201)
+        resolve(JSON.parse(response.body));
+        else
+        reject(response);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+
+  /**
+  * Updates a resource
+  * on the fhir server
+  * @param resource resource to update
+  * @returns resolve of resource as JSON if status 200 or 201
+  * @returns reject every other case with message
+  */
+  update(resource){
+    return new Promise((resolve, reject) => {
+      // checks if resource has id
+      if (typeof resource.id === 'undefined' &&
+      typeof resource._id === 'undefined') {
+        reject('Resource has no id');
+      }
+
+      if (!this.isLoggedIn()) {
+        reject('Not logged in');
+      }
+
+      const config = {
+        access_token: this.auth.token,
+        authorization_type: this.auth.type,
+        base_url: this.urls.service
+      }
+
+      // calls update of apimethods
+      this.apiMethods.update(resource, config).then((response) => {
+        if (response.status === 200 || response.status === 201)
+        resolve(JSON.parse(response.body));
+        else
+        reject(response);
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+
+
+  /**
+  * Searches for one or multiple resources
+  * @param resourceType resource type to look up
+  * @param params search parameters according fhir resource guide
+  * @returns resolve of resource as JSON if status 200 or 201
+  * @returns reject every other case with message
+  */
+  search(resourceType, params){
+    return new Promise((resolve, reject) => {
+      // checks if logged in and has auth token
+      if (!this.isLoggedIn()) {
+        reject('Not logged in');
+      }
+
+      const config = {
+        access_token: this.auth.token,
+        authorization_type: this.auth.type,
+        base_url: this.urls.service
+      }
+
+      // calls search of apimethods
+      this.apiMethods.search(params, resourceType, config).then((response) => {
+        if (response.status === 200 || response.status === 201){
+          resolve(JSON.parse(response.body));
+        }
+        else{
+          reject(response);
+        }
+      }).catch((error) => {
+        reject(error);
+      });
+    });
+  }
+
+
+  /**
+  * Sets the language for the auth window (default: german)
+  * @param lang the language as two-char string (eg. 'de', 'en', 'fr' or 'it')
+  */
+  setLanguage(lang: string){
+    this.settings.language = '';
+    this.persistMe();
+  }
+
+
+  /**
+  * Sets the conformance url, in cases when it differentiates from the default /metadata
+  * @param conformanceUrl the new url
+  */
+  setRedirectUrl(conformanceUrl: string){
+    this.urls.conformance = conformanceUrl;
+    this.persistMe();
+  }
+
+
+  /**
+  * Sets the scope, for when it differs from the default 'user/*.*'
+  * @param scope the scope as string
+  */
+  setScope(scope: string){
+    this.settings.scope = '';
+    this.persistMe();
+  }
+
+
+  /**
   * Makes api call to get the auth and token url
   * from the fhir/midatata of the server.
   * Returns a json response with a resource in the .body
@@ -167,7 +341,7 @@ export class JSOnFhir {
       apiCall({
         url: cfUrl,
         method: HttpMethod.GET
-      }).then((response: ApiCallResponse) => {
+      }).then((response) => {
         return this.interpretConformanceStatementResponse(response);
       }).then((resource) => {
         resolve(resource);
@@ -177,17 +351,17 @@ export class JSOnFhir {
     });
   }
 
+
   /**
   * function that interprets the result of the api request
   */
-  private interpretConformanceStatementResponse(response: ApiCallResponse): Promise<any> {
+  private interpretConformanceStatementResponse(response): Promise<any> {
     return new Promise((resolve, reject) => {
       if (response.status === 200) {
-        // override body with parsed response
-        // todo --> try to map oject from lib
         response.body = JSON.parse(response.body);
         this.urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
         this.urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
+        this.settings.fhirVersion = response.body.fhirVersion;
         this.persistMe();
         resolve(response);
       } else {
@@ -222,5 +396,4 @@ export class JSOnFhir {
   private persistMe(){
     sessionStorage.setItem('jsOnFhir', JSON.stringify(this));
   }
-
 }
