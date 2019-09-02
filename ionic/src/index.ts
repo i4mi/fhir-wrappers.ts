@@ -1,5 +1,4 @@
-import { Hello } from './hello';
-
-const h = new Hello().sayIt();
-
-console.log(h);
+// export { IonicOnFhirModule } from './ionic-on-fhir.module';
+export { IonicOnFhirService } from './ionic-on-fhir.service';
+export { IonicOnFhirModule } from './ionic-on-fhir.module';
+export * from './ionic-on-fhir.types';

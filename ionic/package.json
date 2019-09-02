@@ -1,24 +1,20 @@
 {
     "name": "@i4mi/ionic-on-fhir",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "description": "IONIC wrapper for the I4MI fhir library",
-    "main": "index.js",
+    "main": "ionic-on-fhir/src/index.js",
+    "files": ["ionic-on-fhir/**/*"],
     "scripts": {
-        "clean": "rm -rf _bundles ionic-on-fhir ionic-on-fhir-esm",
-        "build": "npm run clean && tsc && tsc -m es6 --outDir ionic-on-fhir-esm && webpack"
-    },
-    "dependencies": {
-        "awesome-typescript-loader": "^5.2.1",
-        "typescript": "^3.5.3",
-        "uglifyjs-webpack-plugin": "^2.2.0",
-        "webpack": "^4.39.2"
+        "clean": "rm -rf aot ionic-on-fhir",
+        "build": "npm run clean && npm run ngc",
+        "ngc": "ngc"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/i4mi/fhir-wrappers.ts"
+        "url": "https://github.com/i4mi/fhir-wrappers.ts/tree/master/ionic"
     },
     "bugs": {
-        "url": "https://github.com/i4mi/fhir-wrappers.ts/issues"
+        "url": "https://github.com/i4mi/fhir-wrappers.ts/issues/new"
     },
     "author": {
         "name": "Gabriel Hess, Stefan Iseli @ Institute for Medical Informatics (I4MI) - Bern University of Applied Sciences (BFH)",
@@ -34,6 +30,20 @@
         "oAuth2"
     ],
     "devDependencies": {
-        "webpack-cli": "^3.3.7"
+        "@angular/common": "^8.2.3",
+        "@angular/compiler": "^8.2.3",
+        "@angular/compiler-cli": "^8.2.3",
+        "@angular/core": "^8.2.3",
+        "@angular/platform-browser": "^8.2.3",
+        "@angular/platform-browser-dynamic": "^8.2.3",
+        "@types/node": "^6.0.60",
+        "jssha": "^2.3.1",
+        "zone.js": "^0.9.1",
+        "rxjs": "^6.5.2",
+        "typescript": "^3.5.3",
+        "@ionic-native/core": "^5.12.0",
+        "@ionic-native/in-app-browser": "^5.12.0",
+        "@ionic-native/secure-storage": "^5.12.0",
+        "@i4mi/fhir_r4": "^1.0.0"
     }
 }
