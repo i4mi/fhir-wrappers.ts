@@ -1,7 +1,7 @@
 # IN DEVELOPMENT! - use at own risk -
 
 Wrapper for the [I4MI fhir-resource-r4 library](https://www.npmjs.com/package/@i4mi/fhir_r4).  
-This library handles the oAuth 2.0 process for any JavaScript web-app on npm. See below for detailed instructions for [using it with Vue.js](#-2-Using-with-Vue.js).
+This library handles the oAuth 2.0 process for any JavaScript web-app on npm. See below for detailed instructions for [using it with Vue.js](#2-vue).
 
 For projects using the IONIC framework, you may consider the [@i4mi/ionic-on-fhir wrapper](https://www.npmjs.com/package/@i4mi/ionic-on-fhir).
 
@@ -133,7 +133,7 @@ fhir.update(myResource).then((response) => {
 });
 ```
 
-## 2 Using with Vue.js
+## 2 Using with Vue.js <a name="2-vue"></a>
 If you want to use jsOnFhir in a Vue.js project, it is recommended to declare the instance in your `main.js` and then make it available globally.
 
 ### 2.1 Make your jsOnFhir instance globally available
