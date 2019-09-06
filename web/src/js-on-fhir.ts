@@ -39,7 +39,6 @@ export class JSOnFhir {
     let persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
     if(persisted != null){
       if(persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId){
-        console.log("jsOnFhir(): restore from sessionStorage");
         // assign prototype to the object loaded from storage, so it becomes
         // a full JSOnFhir object with functions
         persisted.__proto__ = JSOnFhir.prototype;
@@ -49,7 +48,6 @@ export class JSOnFhir {
     }
     // if no jsOnFhir object could be loaded, or if it has different parameters
     // we do the actual constructor stuff (and save it to the sessionStorage)
-    console.log("jsOnFhir(): everything new");
     this.urls.service = serverUrl + '/fhir';
     this.urls.conformance = serverUrl + '/fhir/metadata';
     this.urls.redirect = redirectUrl;
@@ -129,13 +127,7 @@ export class JSOnFhir {
             jsonEncoded: false
           }).then((response) => {
             if(response.status === 200){
-              this.auth.token = response.body.access_token;
-              this.auth.expires = Date.now() + 1000 * response.body.expires_in;
-              this.auth.type = response.body.token_type;
-              this.auth.refreshToken = response.body.refresh_token;
-              this.settings.patient = response.body.patient;
-
-              this.persistMe();
+              this.interpretAuthResponse(response)
 
               // reset the url so we don't run into misinterpreting the same code later again
               history.pushState({}, null, this.urls.redirect);
@@ -161,6 +153,47 @@ export class JSOnFhir {
 
 
   /**
+  * Fetches a new token from the oAuth server, using a given refreshToken, and
+  * saves the new auth information
+  * @param refreshToken the refreshToken, as received from the response of
+  *                     handleAuthResponse()
+  * @returns a promise with, when:
+  *           - successful:     the response of the server (with token, new refresh-token etc.)
+  *           - not sucessful:  an error message
+  */
+  refreshAuth(refreshToken){
+    console.log('refreshAuth')
+    return new Promise((resolve, reject) => {
+
+      if(refreshToken === '' || !refreshToken){
+        reject("Invalid refresh token");
+      }
+
+      apiCall({
+        url: this.urls.token,
+        method: HttpMethod.POST,
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        jsonBody: true,
+        payload: 'grant_type=refresh_token&refresh_token=' + refreshToken,
+        jsonEncoded: false
+      }).then(response => {
+        if(response.status === 200){
+          this.interpretAuthResponse(response)
+          resolve(response.body);
+        }
+        else {
+          reject("faulty http status: " + response.status + ": " + response.message);
+        }
+      }).catch(err => {
+        console.log('fehler:', err)
+        reject(err);
+      });
+    });
+  }
+
+  /**
   * Checks if a token is set and not expired
   * @returns boolean (true if non-expired token set)
   */
@@ -181,17 +214,6 @@ export class JSOnFhir {
       refreshToken: ''
     };
     this.persistMe();
-  }
-
-  /**
-  * Gets a new token from the oAuth server, using a given refreshToken
-  * @param refreshToken the refreshToken, as received from the response of
-  *                     handleAuthResponse()
-  * @returns TODO
-  */
-  refreshToken(refreshToken: string){
-    // TODO
-    throw("not yet implemented");
   }
 
 
@@ -312,7 +334,7 @@ export class JSOnFhir {
   * Sets the conformance url, in cases when it differentiates from the default /metadata
   * @param conformanceUrl the new url
   */
-  setRedirectUrl(conformanceUrl: string){
+  setConformanceUrl(conformanceUrl: string){
     this.urls.conformance = conformanceUrl;
     this.persistMe();
   }
@@ -368,6 +390,20 @@ export class JSOnFhir {
         reject(response);
       }
     });
+  }
+
+  /**
+  ** Helper function for saving the relevant data from an auth request
+  * @param response the response object from a auth or authrefresh request
+  */
+  private interpretAuthResponse(response){
+    this.auth.token = response.body.access_token;
+    this.auth.expires = Date.now() + 1000 * response.body.expires_in;
+    this.auth.type = response.body.token_type;
+    this.auth.refreshToken = response.body.refresh_token;
+    this.settings.patient = response.body.patient;
+
+    this.persistMe();
   }
 
 
