@@ -1,5 +1,4 @@
 import { apiCall, HttpMethod, ApiMethods } from '@i4mi/fhir_r4';
-import { AuthRequest, AuthResponse, TokenExchangeRequest } from './typeDefinitions';
 
 export class JSOnFhir {
   private apiMethods = new ApiMethods;
