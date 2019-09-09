@@ -7,14 +7,14 @@ For projects using the IONIC framework, you may consider the [@i4mi/ionic-on-fhi
 
 ## Content
 - [1 Usage](#1-usage)
- - [1.1 Install package](#1.1-install)
- - [1.2 Import and initialize](#1.2-import)
- - [1.3 Auth process](#1.3-auth)
- - [1.4 Methods](#1.4-methods)
- - [1.5 Examples](#1.5-examples)
+  - [1.1 Install package](#1.1-install)
+  - [1.2 Import and initialize](#1.2-import)
+  - [1.3 Auth process](#1.3-auth)
+  - [1.4 Methods](#1.4-methods)
+  - [1.5 Examples](#1.5-examples)
 - [2 Using with Vue.js](#2-vue)
- - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
- - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
+  - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
+  - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
 - [3 Dev](#3-dev)
 - [4 Submit issues](#4-issues)
 
