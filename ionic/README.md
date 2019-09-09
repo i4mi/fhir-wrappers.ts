@@ -65,10 +65,10 @@ Possible functions:
 | Function           | Params                            | Description |  
 | ---                | ---                               | --- |  
 | configInAppBrowser | `Array<{ key: 'X', value: 'Y' }>` | Customize your in app browser with your own config! Look up all keys @ [the documentation](https://github.com/apache/cordova-plugin-inappbrowser)      |  
-| differentiateConformanceStatementUrl | url as string   | If the url where to get the conformance statement (auth n token url) diverges from the pattern `[fhirServerUrl]/fhir/metadata` you have to set it here |  
-| differentiateScope | scope as string                   | If you want another scope than `user/*.*`, here is the function for it                                                                                     |  
-| differentiateAud   | aud as string                     | If the url for your api calls diverges from `/fhir` here is the function to set it                                                                     |
-
+| differentiateConformanceStatementUrl | url as string   | If the url where to get the conformance statement (auth n token url) diverges from the pattern `[fhirServerUrl]/fhir/metadata` you have to set it here          |  
+| differentiateScope | scope as string                   | If you want another scope than `user/*.*`, here is the function for it                                                                                              |  
+| differentiateAud   | aud as string                     | If the url for your api calls diverges from `/fhir` here is the function to set it                                                                               |
+| differentiateContentType   | content-type as string                     | If the content type (or accept) of your fhir server is another than the default `application/fhir+json;fhirVersion=4.0` define it yourself   |
 
 
 ### Authenticate
@@ -137,6 +137,8 @@ myUpdate(validResource: Resource) {
     });
 }
 ```
+
+
 
 ## Dev
 clone repo  

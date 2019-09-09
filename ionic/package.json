@@ -1,9 +1,11 @@
 {
     "name": "@i4mi/ionic-on-fhir",
-    "version": "0.0.3",
+    "version": "0.0.4",
     "description": "IONIC wrapper for the I4MI fhir library",
     "main": "ionic-on-fhir/src/index.js",
-    "files": ["ionic-on-fhir/**/*"],
+    "files": [
+        "ionic-on-fhir/**/*"
+    ],
     "scripts": {
         "clean": "rm -rf aot ionic-on-fhir",
         "build": "npm run clean && npm run ngc",
@@ -30,20 +32,20 @@
         "oAuth2"
     ],
     "devDependencies": {
-        "@angular/common": "^8.2.3",
-        "@angular/compiler": "^8.2.3",
-        "@angular/compiler-cli": "^8.2.3",
-        "@angular/core": "^8.2.3",
-        "@angular/platform-browser": "^8.2.3",
-        "@angular/platform-browser-dynamic": "^8.2.3",
+        "@angular/common": "^8.2.5",
+        "@angular/compiler": "^8.2.5",
+        "@angular/compiler-cli": "^8.2.5",
+        "@angular/core": "^8.2.5",
+        "@angular/platform-browser": "^8.2.5",
+        "@angular/platform-browser-dynamic": "^8.2.5",
+        "@i4mi/fhir_r4": "^1.0.4",
+        "@ionic-native/core": "^5.13.0",
+        "@ionic-native/in-app-browser": "^5.13.0",
+        "@ionic-native/secure-storage": "^5.13.0",
         "@types/node": "^6.0.60",
         "jssha": "^2.3.1",
-        "zone.js": "^0.9.1",
-        "rxjs": "^6.5.2",
-        "typescript": "^3.5.3",
-        "@ionic-native/core": "^5.12.0",
-        "@ionic-native/in-app-browser": "^5.12.0",
-        "@ionic-native/secure-storage": "^5.12.0",
-        "@i4mi/fhir_r4": "^1.0.0"
+        "rxjs": "^6.5.3",
+        "typescript": "3.5.3",
+        "zone.js": "^0.9.1"
     }
 }

@@ -4,7 +4,7 @@ import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage
 import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY, InAppBrowserSettings } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { DomainResource, Resource } from '@i4mi/fhir_r4/dist/definition';
+import { Resource } from '@i4mi/fhir_r4/dist/definition';
 
 const jsSHA = require('jssha');
 
@@ -13,7 +13,6 @@ const jsSHA = require('jssha');
 })
 export class IonicOnFhirService {
     // plugins, libs and interfaces
-    private apiCallArgs: ApiCallArgs;
     private authWindow: InAppBrowserObject;
     private authRequestParams: AuthRequest = {
         client_id: '',
@@ -98,6 +97,15 @@ export class IonicOnFhirService {
      */
     configInAppBrowser(settings: Array<InAppBrowserSettings>) {
         this.iabSettings = settings;
+    }
+    
+    /**
+     * Function that lets you define a different content type for you fhir server 
+     * than the default type of the lib. Default: "application/fhir+json;fhirVersion=4.0"
+     * @param contentType content type for header param
+     */
+    differentiateContentType(contentType: string) {
+        this.apiMethods.differentiateContentType(contentType);
     }
 
     /**
