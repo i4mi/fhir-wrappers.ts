@@ -1,4 +1,4 @@
 node_modules
 _bundles
-web-on-fhir
-web-on-fhir-esm
+js-on-fhir
+js-on-fhir-esm
