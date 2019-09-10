@@ -5,13 +5,13 @@ This library handles the oAuth 2.0 process for an [ionic 4](https://ionicframewo
 
 # Content
 1. [Usage](#1-Usage)  
-  1.1 [Install package](#1.1-Install-package)  
-  1.2 [Install dependencies](#1.2-Install-dependencies)  
-  1.3 [Import](#1.3-Import)  
-  1.4 [Initialize module](#1.4-Initialize-module)  
-  1.5 [Authenticate and session refresh](#1.5-Authenticate-and-session-refresh)  
-  1.6 [Methods](#1.6-Methods)
-  1.7 [Examples](#1.7-Examples)
+  1.1 [Install package](#11-Install-package)  
+  1.2 [Install dependencies](#12-Install-dependencies)  
+  1.3 [Import](#13-Import)  
+  1.4 [Initialize module](#14-Initialize-module)  
+  1.5 [Authenticate and session refresh](#15-Authenticate-and-session-refresh)  
+  1.6 [Methods](#16-Methods)  
+  1.7 [Examples](#17-Examples)
 2. [Dev](#2-Dev)
 3. [Submit issues](#3-Submit-issues)
 
