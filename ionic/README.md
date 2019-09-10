@@ -74,12 +74,27 @@ Possible functions:
 ### Authenticate
 After init before you can do any other action, you have to call authenticate on the server configured:
 ```typescript
-...
 
 myAuthFunction() {
     return new Promise((resolve, reject) => {
-        // gets metadata xml from midata to know auth and token endpoint url
-        return this.midataLib.authenticate().then((response) => {
+        return this.myLib.authenticate().then((response) => {
+            console.log(response);
+            resolve(response);
+        }).catch((error) => {
+            console.error(error);
+            reject(error);
+        });
+    });
+}
+```
+
+### Session refresh
+Your application needs to check and handle the expires_in time. Now the user does not want to get logged out after every x hours/minutes/seconds. So there is a need to refresh the session.
+For this we implemented the `sessionRefresh()` function.
+```typescript
+myRefreshFunction() {
+    return new Promise((resolve, reject) => {
+        return this.myLib.refreshSession().then((response) => {
             console.log(response);
             resolve(response);
         }).catch((error) => {
@@ -93,9 +108,8 @@ myAuthFunction() {
 ### Search
 Searching for a fhir resource
 ```typescript
-...
 mySearch() {
-    this.midataLib.search('Observation', { id: '123131231asfdasd21813' }).then((response) => {
+    this.myLib.search('Observation', { id: '123131231asfdasd21813' }).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
@@ -110,9 +124,8 @@ Create for a fhir resource.
 With this library, the fhir-resource-r4 library of the I4MI will automatically get installed as well. Therefore, we can now the interfaces given by this lib and you will always have a valid resource (this does not necessarily mean that you server can interpret it!)
 *IMPORTANT:* Do not forget to set the resourceType key!
 ```typescript
-...
 myCreate(validResource: Resource) {
-    this.midataLib.create(Resource).then((response) => {
+    this.myLib.create(Resource).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
@@ -126,9 +139,8 @@ myCreate(validResource: Resource) {
 Updates a fhir resource.
 *IMPORTANT:* Do not forget that you need the resource.id for making and update
 ```typescript
-...
 myUpdate(validResource: Resource) {
-    this.midataLib.update(Resource).then((response) => {
+    this.myLib.update(Resource).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
@@ -137,8 +149,6 @@ myUpdate(validResource: Resource) {
     });
 }
 ```
-
-
 
 ## Dev
 clone repo  
