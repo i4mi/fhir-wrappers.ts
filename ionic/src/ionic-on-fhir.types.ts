@@ -55,7 +55,7 @@ export interface TokenExchangeRequest {
  * The token request payload
  */
 export interface TokenRequest {
-    encodedParams: HttpParams;
+    encodedParams: HttpParams | URLSearchParams;
 }
 
 export const AUTH_RES_KEY = 'AUTH_RES';
