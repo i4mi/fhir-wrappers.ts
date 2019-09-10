@@ -15,6 +15,7 @@ For projects using the IONIC framework, you may consider the [@i4mi/ionic-on-fhi
 - [2 Using with Vue.js](#2-vue)
   - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
   - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
+  - [2.2 Demo app](#3-demo-app)
 - [3 Dev](#3-dev)
 - [4 Submit issues](#4-issues)
 
@@ -102,7 +103,7 @@ refreshAuth(*rToken*)  |Refreshes the authentication with a refresh token. The r
 isLoggedIn()          |Checks if an auth token is set and not expired.|none|*true* if a token is set and not yet expired, *false* if no token is set or it is expired.|
 logout()              |Logs out the user by deleting all the authentication information|none|nothing|
 create(*resource*)    |Creates a new resource on the FHIR server.|*resource*: the resource to create.|A promise that: <br/>resolves with the created resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
-update(*resource*)    |Updates an existing resource on the FHIR server.|*resource*: the resource to create. Note that the *resource.id* must be set and correct.|A promise that:<br/>resolves with the updated resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
+update(*resource*)    |Updates an existing resource on the FHIR server.|*resource*: the resource to update. Note that the *resource.id* must be set and correct.|A promise that:<br/>resolves with the updated resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 search(*resourceType*, *params*)|Searches for resources on the server.|*resourceType*: the resource type to look up.<br/>*params*: the FHIR search parameters (see [hl7.org](https://www.hl7.org/fhir/search.html) for details)|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
 setLanguage(*lang*)   |Sets the language used for the servers auth window (if supported serverside).|*lang*: The abbreviation of the wanted language (e.g. `'en'`, `'de'`, `'fr'` or `'it'`).|nothing|
 setConformanceUrl(*url*)|Manually sets the conformance URL. Only necessary if it deviates from the standard `myserver.net/fhir/metadata` scheme, as this is generated as a default.|*url*: the servers conformance URL.|nothing|
@@ -223,6 +224,10 @@ mounted(){ // mounted() is automatically executed every time your Vue component 
 /* ... */
 ```
 You then can call the `this.$fhir.authenticate()` method from anywhere in your project, which takes the user to the servers auth page and further to the defined *redirect_url* (which is your `App.vue`), where the auth response is handled.
+
+
+### 2.3 Demo app
+A demonstration of the most important functions and the implementation in a Vue.js project can be seen in a simple demo app available on [github/heg/vue-fhir-demo](https://github.com/heg2/vue-fhir-demo).
 
  <a name="3-dev"></a>
 ## 3 Dev
