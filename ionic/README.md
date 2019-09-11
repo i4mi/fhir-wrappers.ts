@@ -112,30 +112,22 @@ The following table describes all the methods intended for public use (exluding 
 ### 1.7.1 Authenticate
 ```typescript
 myAuthFunction() {
-    return new Promise((resolve, reject) => {
-        return this.ionicOnFhir.authenticate().then((response) => {
-            console.log(response);
-            resolve(response);
-        }).catch((error) => {
-            console.error(error);
-            reject(error);
-        });
-    });
+  this.ionicOnFhir.authenticate().then((response) => {
+      console.log(response);
+  }).catch((error) => {
+      console.error(error);
+  });
 }
 ```
 
 ### 1.7.2 Session refresh
 ```typescript
 myRefreshFunction() {
-    return new Promise((resolve, reject) => {
-        return this.ionicOnFhir.refreshSession().then((response) => {
-            console.log(response);
-            resolve(response);
-        }).catch((error) => {
-            console.error(error);
-            reject(error);
-        });
-    });
+  this.ionicOnFhir.refreshSession().then((response) => {
+      console.log(response);
+  }).catch((error) => {
+      console.error(error);
+  });
 }
 ```
 
