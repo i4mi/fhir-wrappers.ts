@@ -108,30 +108,26 @@ The following table describes all the methods intended for public use (exluding 
 ### 1.7.1 Authenticate
 ```typescript
 myAuthFunction() {
-    return new Promise((resolve, reject) => {
-        return this.myLib.authenticate().then((response) => {
-            console.log(response);
-            resolve(response);
-        }).catch((error) => {
-            console.error(error);
-            reject(error);
-        });
-    });
+      this.ionicOnFhir.authenticate().then((response) => {
+          console.log(response);
+          resolve(response);
+      }).catch((error) => {
+          console.error(error);
+          reject(error);
+      });
 }
 ```
 
 ### 1.7.2 Session refresh
 ```typescript
 myRefreshFunction() {
-    return new Promise((resolve, reject) => {
-        return this.myLib.refreshSession().then((response) => {
-            console.log(response);
-            resolve(response);
-        }).catch((error) => {
-            console.error(error);
-            reject(error);
-        });
-    });
+      this.ionicOnFhir.refreshSession().then((response) => {
+          console.log(response);
+          resolve(response);
+      }).catch((error) => {
+          console.error(error);
+          reject(error);
+      });
 }
 ```
 
@@ -139,7 +135,7 @@ myRefreshFunction() {
 Searching for a fhir "Observation" resource with the id "123131231asfdasd21813":
 ```typescript
 mySearch() {
-    this.myLib.search('Observation', { _id: '123131231asfdasd21813' }).then((response) => {
+    this.ionicOnFhir.search('Observation', { _id: '123131231asfdasd21813' }).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
@@ -155,7 +151,7 @@ With this library, the fhir-resource-r4 library of the I4MI will automatically g
 *IMPORTANT:* Do not forget to set the resourceType key!
 ```typescript
 myCreate(validResource: Resource) {
-    this.myLib.create(Resource).then((response) => {
+    this.ionicOnFhir.create(Resource).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
@@ -170,7 +166,7 @@ Updates a fhir resource.
 *IMPORTANT:* Do not forget that you need the resource.id for making and update
 ```typescript
 myUpdate(validResource: Resource) {
-    this.myLib.update(Resource).then((response) => {
+    this.ionicOnFhir.update(Resource).then((response) => {
         // response is now the server response with the resource in the body
         // only if status is 20X
     }).catch((error) => {
