@@ -25,6 +25,11 @@ Install package with:
 __IMPORTANT:__  
 Install the in app browser plugin before using this library: 
 ```
+$ npm i jssha
+$ npm i @ionic-native/in-app-browser
+$ npm i @ionic-native/secure-storage 
+
+
 $ ionic cordova plugin add cordova-plugin-inappbrowser  
 $ ionic cordova plugin add cordova-plugin-secure-storage
 ``` 
@@ -32,7 +37,7 @@ $ ionic cordova plugin add cordova-plugin-secure-storage
 ### 1.3 Import
 After installing the lib and it's dependencies, you have to import the library. Once globaly and once in the page/service you're going to use the libary.  
 __Global:__  
-To use `ionic-on-fhir`, add following import statement in `app.modules.ts`:  
+To use `ionic-on-fhir`, add following import statement in `app.module.ts`:  
 ```typescript
 import { IonicOnFhirModule } from '@i4mi/ionic-on-fhir';
 
@@ -44,7 +49,7 @@ import { IonicOnFhirModule } from '@i4mi/ionic-on-fhir';
 ```
 
 __Page/Service:__   
-Then add the service where you need it in the constuctor of your page/service:
+Then add the service where you need it in the constructor of your page/service:
 ```typescript
 import { IonicOnFhirService } from '@i4mi/ionic-on-fhir';
 
