@@ -1,5 +1,3 @@
-import { HttpParams } from '@angular/common/http';
-
 /** ACCORDING http://www.hl7.org/fhir/smart-app-launch/index.html */
 /**
  * The url parameters of the oauth request
@@ -36,7 +34,7 @@ export interface AuthResponse {
     scope: string; // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
     id_token?: string; // Authenticated patient identity and user details, if requested
     patient: string; // field name for user id defined by SMART on FHIR
-    refresh_token: string; // Token that can be used to obtain a new access token, 
+    refresh_token: string; // Token that can be used to obtain a new access token,
     // using the same or a subset of the original authorization grants
 }
 
@@ -51,67 +49,4 @@ export interface TokenExchangeRequest {
     client_id: string; // Required for public apps. Omit for confidential apps.
 }
 
-/**
- * The token request payload
- */
-export interface TokenRequest {
-    encodedParams: HttpParams | URLSearchParams;
-}
-
 export const AUTH_RES_KEY = 'AUTH_RES';
-
-export interface InAppBrowserSettings {
-    key: InAppBrowserSettingsAll | InAppBrowserSettingsAndroid | InAppBrowserSettingsIos,
-    value: string
-}
-
-/**
- * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
- */
-export enum InAppBrowserSettingsAll {
-    location = 'location',
-    hidden = 'hidden',
-    beforeload = 'beforeload',
-    clearcache = 'clearcache',
-    clearsessioncache = 'clearsessioncache',
-    closebuttoncolor = 'closebuttoncolor',
-    closebuttoncaption = 'closebuttoncaption',
-    hidenavigationbuttons = 'hidenavigationbuttons',
-    navigationbuttoncolor = 'navigationbuttoncolor',
-    toolbarcolor = 'toolbarcolor',
-    mediaPlaybackRequiresUserAction = 'mediaPlaybackRequiresUserAction',
-}
-
-/**
- * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
- */
-export enum InAppBrowserSettingsAndroid {
-    footer = 'footer',
-    footercolor = 'footercolor',
-    hardwareback = 'hardwareback',
-    hideurlbar = 'hideurlbar',
-    lefttoright = 'lefttoright',
-    zoom = 'zoom',
-    shouldPauseOnSuspend = 'shouldPauseOnSuspend',
-    useWideViewPort = 'useWideViewPort'
-}
-
-/**
- * Settings dok : https://github.com/apache/cordova-plugin-inappbrowser
- */
-export enum InAppBrowserSettingsIos {
-    usewkwebview = 'usewkwebview',
-    cleardata = 'cleardata',
-    disallowoverscroll = 'disallowoverscroll',
-    toolbar = 'toolbar',
-    toolbartranslucent = 'toolbartranslucent',
-    lefttoright = 'lefttoright',
-    enableViewportScale = 'enableViewportScale',
-    allowInlineMediaPlayback = 'allowInlineMediaPlayback',
-    keyboardDisplayRequiresUserAction = 'keyboardDisplayRequiresUserAction',
-    suppressesIncrementalRendering = 'suppressesIncrementalRendering',
-    presentationstyle = 'presentationstyle',
-    transitionstyle = 'transitionstyle',
-    toolbarposition = 'toolbarposition',
-    hidespinner = 'hidespinner'
-}

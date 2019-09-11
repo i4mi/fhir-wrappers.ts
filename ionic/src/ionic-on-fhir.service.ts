@@ -4,7 +4,7 @@ import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage
 import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY, InAppBrowserSettings } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { DomainResource, Resource } from '@i4mi/fhir_r4/dist/definition';
+import { Resource } from '@i4mi/fhir_r4/dist/definition';
 
 const jsSHA = require('jssha');
 
@@ -13,7 +13,6 @@ const jsSHA = require('jssha');
 })
 export class IonicOnFhirService {
     // plugins, libs and interfaces
-    private apiCallArgs: ApiCallArgs;
     private authWindow: InAppBrowserObject;
     private authRequestParams: AuthRequest = {
         client_id: '',
@@ -98,6 +97,15 @@ export class IonicOnFhirService {
      */
     configInAppBrowser(settings: Array<InAppBrowserSettings>) {
         this.iabSettings = settings;
+    }
+    
+    /**
+     * Function that lets you define a different content type for you fhir server 
+     * than the default type of the lib. Default: "application/fhir+json;fhirVersion=4.0"
+     * @param contentType content type for header param
+     */
+    differentiateContentType(contentType: string) {
+        this.apiMethods.differentiateContentType(contentType);
     }
 
     /**
@@ -220,6 +228,79 @@ export class IonicOnFhirService {
             }).catch((error) => {
                 reject(error);
             });
+        });
+    }
+
+    /**
+     * Refresh session and refreshes it, if user was logged in.
+     * Tries to refresh the authentication token by authorizing with the help of the refresh token. 
+     * This will generate a new authentication as well as a new refresh token. On successful refresh, 
+     * the old refresh_token will be invalid and both the access_token and the refresh_token will be overwritten. 
+     * Previous access_tokens will remain valid until their expiration timestamp is exceeded.
+     * @returns resolves the auth response if success
+     * @returns reject every other case
+     */
+    refreshSession(): Promise<any> {
+        // function to get the params for the refresh request
+        const defineParameters = (): Promise<TokenRequest> => {
+            return new Promise((resolve, reject) => {
+                let urlParams = new URLSearchParams();
+                urlParams.append('grant_type', 'refresh_token');
+    
+                if (!this.authResponseParams.refresh_token) {
+                    this.getAuthResponse().then((result: AuthResponse) => {
+                        urlParams.append('refresh_token', result.refresh_token);
+                        resolve({  encodedParams: urlParams });
+                    }).catch((error) => {
+                        reject(error);
+                    });
+                } else {
+                    urlParams.append('refresh_token', this.authResponseParams.refresh_token);
+                    resolve({  encodedParams: urlParams });
+                }
+            });
+        };
+
+        // do refresh
+        const doSessionRefresh = (refeshParam): Promise<any> => {
+            return new Promise((resolve, reject) => {
+                apiCall({
+                    url: this.tokenExchangeParams.token_url,
+                    method: HttpMethod.POST,
+                    payload: refeshParam.encodedParams.toString(),
+                    jsonBody: true,
+                    jsonEncoded: false,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    }
+                }).then((response) => {
+                    resolve(response);
+                }).catch((error) => {
+                    reject(error);
+                })
+            });
+        }
+
+        return new Promise((resolve, reject) => {
+            // Gets conformance statement
+            this.fetchConformanceStatement().then(() => {
+                return defineParameters();
+            }).then((params) => {
+                return doSessionRefresh(params);   
+            }).then((response) => {
+                if (response.status === 200) {
+                    let refreshResponse: AuthResponse = response.body;
+                    this.saveAuthResponse(refreshResponse).then(() => {
+                        resolve(refreshResponse);
+                    }).catch((error) => {
+                        reject(error);
+                    }); 
+                } else {
+                    reject(response);
+                }
+            }).catch((error) => {
+                reject(error);
+            })
         });
     }
 
@@ -504,6 +585,24 @@ export class IonicOnFhirService {
         return new Promise((resolve, reject) => {
             this.checkIfDeviceSecure().then(() => {
                 this.storage.set(AUTH_RES_KEY, JSON.stringify(response)).then(() => {
+                    resolve(response);
+                }).catch((error) => {
+                    reject(error);
+                });
+            }).catch((error) => {
+                reject(error);
+            });
+        });
+    }
+
+    /**
+     * Loads the auth response if there was one (for refresh token etc.)
+     */
+    private getAuthResponse(): Promise<any> {
+        return new Promise((resolve, reject) => {
+            this.checkIfDeviceSecure().then(() => {
+                this.storage.get(AUTH_RES_KEY).then((response) => {
+                    response = JSON.parse(response);
                     resolve(response);
                 }).catch((error) => {
                     reject(error);

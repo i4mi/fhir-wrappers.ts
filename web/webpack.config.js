@@ -8,14 +8,14 @@ var PATHS = {
 
 var config = {
     entry: {
-        'web-on-fhir': [PATHS.entryPoint],
+        'js-on-fhir': [PATHS.entryPoint],
     },
     // When including the bundle in the browser it will be accessible at `window.web-fhir`
     output: {
         path: PATHS.bundles,
         filename: '[name].js',
         libraryTarget: 'umd',
-        library: 'web-on-fhir',
+        library: 'js-on-fhir',
         umdNamedDefine: true
     },
     resolve: {
