@@ -29,7 +29,6 @@ $ npm i jssha
 $ npm i @ionic-native/in-app-browser
 $ npm i @ionic-native/secure-storage 
 
-
 $ ionic cordova plugin add cordova-plugin-inappbrowser  
 $ ionic cordova plugin add cordova-plugin-secure-storage
 ``` 
@@ -113,26 +112,22 @@ The following table describes all the methods intended for public use (exluding 
 ### 1.7.1 Authenticate
 ```typescript
 myAuthFunction() {
-      this.ionicOnFhir.authenticate().then((response) => {
-          console.log(response);
-          resolve(response);
-      }).catch((error) => {
-          console.error(error);
-          reject(error);
-      });
+  this.ionicOnFhir.authenticate().then((response) => {
+      console.log(response);
+  }).catch((error) => {
+      console.error(error);
+  });
 }
 ```
 
 ### 1.7.2 Session refresh
 ```typescript
 myRefreshFunction() {
-      this.ionicOnFhir.refreshSession().then((response) => {
-          console.log(response);
-          resolve(response);
-      }).catch((error) => {
-          console.error(error);
-          reject(error);
-      });
+  this.ionicOnFhir.refreshSession().then((response) => {
+      console.log(response);
+  }).catch((error) => {
+      console.error(error);
+  });
 }
 ```
 
