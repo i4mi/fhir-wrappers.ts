@@ -155,7 +155,8 @@ export class IonicOnFhirService {
 
                 let autoClose = false;
                 let effectiveIabSettings = 'location=no,clearcache=yes';
-                if (typeof this.iabSettings !== undefined) {
+                if (typeof this.iabSettings !== 'undefined' && 
+                    this.iabSettings.length !== 0) {
                     effectiveIabSettings = '';
                     this.iabSettings.forEach((setting, index) => {
                         effectiveIabSettings += `${setting.key}=${setting.value}`;
@@ -524,9 +525,6 @@ export class IonicOnFhirService {
                 tokenRequestParams = tokenRequestParams.append('code', this.tokenExchangeParams.code);
                 tokenRequestParams = tokenRequestParams.append('redirect_uri', this.tokenExchangeParams.redirect_uri);
                 tokenRequestParams = tokenRequestParams.append('client_id', this.tokenExchangeParams.client_id);
-
-                console.warn('Token request param', tokenRequestParams.toString());
-
                 return { encodedParams: tokenRequestParams };
             };
 
