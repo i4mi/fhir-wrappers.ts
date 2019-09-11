@@ -31,6 +31,9 @@
         "ionic",
         "oAuth2"
     ],
+    "dependencies": {
+        "@i4mi/fhir_r4": "^1.0.4"
+    },
     "devDependencies": {
         "@angular/common": "^8.2.5",
         "@angular/compiler": "^8.2.5",
@@ -38,7 +41,6 @@
         "@angular/core": "^8.2.5",
         "@angular/platform-browser": "^8.2.5",
         "@angular/platform-browser-dynamic": "^8.2.5",
-        "@i4mi/fhir_r4": "^1.0.4",
         "@ionic-native/core": "^5.13.0",
         "@ionic-native/in-app-browser": "^5.13.0",
         "@ionic-native/secure-storage": "^5.13.0",
