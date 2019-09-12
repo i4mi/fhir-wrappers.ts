@@ -222,11 +222,14 @@ export class IonicOnFhirService {
                 doAuthentication(encodedUrl).then(() => {
                     return this.exchangeTokenForCode();
                 }).then((resp) => {
+                    this.loggedIn = true;
                     resolve(resp);
                 }).catch((error) => {
+                    this.loggedIn = false;
                     reject(error);
                 });
             }).catch((error) => {
+                this.loggedIn = false;
                 reject(error);
             });
         });
@@ -292,14 +295,18 @@ export class IonicOnFhirService {
                 if (response.status === 200) {
                     let refreshResponse: AuthResponse = response.body;
                     this.saveAuthResponse(refreshResponse).then(() => {
+                        this.loggedIn = true;
                         resolve(refreshResponse);
                     }).catch((error) => {
+                        this.loggedIn = false;
                         reject(error);
                     }); 
                 } else {
+                    this.loggedIn = false;
                     reject(response);
                 }
             }).catch((error) => {
+                this.loggedIn = false;
                 reject(error);
             })
         });

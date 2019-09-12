@@ -1,6 +1,6 @@
 {
     "name": "@i4mi/ionic-on-fhir",
-    "version": "0.0.6",
+    "version": "0.0.7",
     "description": "IONIC wrapper for the I4MI fhir library",
     "main": "ionic-on-fhir/src/index.js",
     "files": [
