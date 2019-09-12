@@ -353,7 +353,7 @@ export class IonicOnFhirService {
                 // calls create of apimethods
                 this.apiMethods.create(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
@@ -397,7 +397,7 @@ export class IonicOnFhirService {
                 // calls update of apimethods
                 this.apiMethods.update(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
@@ -435,7 +435,7 @@ export class IonicOnFhirService {
                 // calls search of apimethods
                 this.apiMethods.search(params, resourceType, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
