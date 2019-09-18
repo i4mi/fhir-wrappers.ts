@@ -1,10 +1,9 @@
-import { apiCall, ApiCallArgs, ApiCallResponse, HttpMethod, ApiMethods, ApiConfig } from '@i4mi/fhir_r4';
+import { apiCall, ApiCallResponse, HttpMethod, ApiMethods, ApiConfig, Resource } from '@i4mi/fhir_r4';
 import { InAppBrowser, InAppBrowserObject } from '@ionic-native/in-app-browser/ngx';
 import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage/ngx';
 import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY, InAppBrowserSettings } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Resource } from '@i4mi/fhir_r4/dist/definition';
 
 const jsSHA = require('jssha');
 
