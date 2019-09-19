@@ -37,11 +37,15 @@ export class JSOnFhir {
     // check if we have a jsOnFhir object in sessionStorage
     let persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
     if(persisted != null){
-      if(persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId){
+      if(persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId){
         // assign prototype to the object loaded from storage, so it becomes
         // a full JSOnFhir object with functions
         persisted.__proto__ = JSOnFhir.prototype;
         persisted.apiMethods = new ApiMethods();
+
+        // set redirectUrl
+        persisted.urls.redirect = redirectUrl;
+
         return persisted;
       }
     }
@@ -97,7 +101,7 @@ export class JSOnFhir {
     return new Promise((resolve, reject) => {
       if(window.location.search.includes('state=') && window.location.search.includes('code=')){
         var urlParams = window.location.search.substring(1).split('&');
-        var state, code: string;
+        var state: string, code: string;
         for (var i = 0; i < urlParams.length; i++)
         {
           var param = urlParams[i].split('=');
@@ -160,8 +164,7 @@ export class JSOnFhir {
   *           - successful:     the response of the server (with token, new refresh-token etc.)
   *           - not sucessful:  an error message
   */
-  refreshAuth(refreshToken){
-    console.log('refreshAuth')
+  refreshAuth(refreshToken: string){
     return new Promise((resolve, reject) => {
 
       if(refreshToken === '' || !refreshToken){
@@ -186,7 +189,7 @@ export class JSOnFhir {
           reject("faulty http status: " + response.status + ": " + response.message);
         }
       }).catch(err => {
-        console.log('fehler:', err)
+        console.log('Error refreshing auth:', err)
         reject(err);
       });
     });
@@ -222,7 +225,7 @@ export class JSOnFhir {
   * @returns resolve of resource as JSON if status 200 or 201
   * @returns reject every other case with message
   */
-  create(resource){
+  create(resource: any){
     return new Promise((resolve, reject) => {
       if(!this.isLoggedIn()){
         reject('Not logged in');
@@ -272,7 +275,7 @@ export class JSOnFhir {
       }
 
       // calls update of apimethods
-      this.apiMethods.update(resource, config).then((response) => {
+      this.apiMethods.update(JSON.parse(JSON.stringify(resource)), config).then((response) => {
         if (response.status === 200 || response.status === 201)
         resolve(JSON.parse(response.body));
         else
@@ -408,7 +411,7 @@ export class JSOnFhir {
 
   /**
   * Generates random state string with given length
-  * If lengts set to 0, it will take 122
+  * If length is set to 0, it will take 122
   * @param length length of the string to generate
   */
   private generateRandomState(length: number) {
