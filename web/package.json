@@ -1,6 +1,6 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
     "main": "js-on-fhir/index.js",
     "scripts": {
@@ -8,11 +8,7 @@
         "build": "npm run clean && tsc && tsc -m es6 --outDir js-on-fhir-esm"
     },
     "dependencies": {
-        "@i4mi/fhir_r4": "^1.0.0",
-        "awesome-typescript-loader": "^5.2.1",
-        "typescript": "^3.5.3",
-        "uglifyjs-webpack-plugin": "^2.2.0",
-        "webpack": "^4.39.2"
+        "@i4mi/fhir_r4": "^1.0.5"
     },
     "repository": {
         "type": "git",
@@ -39,6 +35,10 @@
         "vue.js"
     ],
     "devDependencies": {
-        "webpack-cli": "^3.3.7"
+        "webpack-cli": "^3.3.7",
+        "awesome-typescript-loader": "^5.2.1",
+        "typescript": "^3.5.3",
+        "uglifyjs-webpack-plugin": "^2.2.0",
+        "webpack": "^4.39.2"
     }
 }
