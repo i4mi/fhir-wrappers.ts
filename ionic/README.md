@@ -23,18 +23,18 @@ Install package with:
 
 ## 1.2 Install dependencies
 __IMPORTANT:__  
-Install the in app browser plugin before using this library: 
+Install the in app browser plugin before using this library:
 ```
 $ npm i jssha
 $ npm i @ionic-native/in-app-browser
-$ npm i @ionic-native/secure-storage 
+$ npm i @ionic-native/secure-storage
 
 $ ionic cordova plugin add cordova-plugin-inappbrowser  
-$ ionic cordova plugin add cordova-plugin-secure-storage
-``` 
+$ ionic cordova plugin add cordova-plugin-secure-storage-echo
+```
 
 ### 1.3 Import
-After installing the lib and it's dependencies, you have to import the library. Once globaly and once in the page/service you're going to use the libary.  
+After installing the lib and it's dependencies, you have to import the library. Once globally and once in the page/service you're going to use the library.  
 __Global:__  
 To use `ionic-on-fhir`, add following import statement in `app.module.ts`:  
 ```typescript
@@ -95,9 +95,9 @@ this.ionicOnFhir.refreshSession();
 ```
 
 # 1.6 Methods
-The following table describes all the methods intended for public use (exluding the functions from chapter [1.4.1 Misc config](#1.4.1-Misc-config)).
+The following table describes all the methods intended for public use (excluding the functions from chapter [1.4.1 Misc config](#1.4.1-Misc-config)).
 
-| Fucntion | Description | Params | Returns |
+| Function | Description | Params | Returns |
 | --- | --- | --- | ---- |
 | initIonicOnFhir(_fhirServerUrl_, _clientId_) | Set values the library needs for the authentication process. | <ul><li>_fhirServerUrl_: The url to the server (for example test.midata.coop)</li><li>_clientId_: App name given to the auth request as client id</li></ul> | nothing |
 | authenticate() | Opens InAppBrowser and executes the oAuth2.0 process (see [1.5.1](#1.5.1-Authenticate)). | none | Promise with the auth response: <br/>`{`<br/>`    "state":"none",`<br/>`    "access_token":"oSkJQeiTxx4iiK...hqKhFp2Jj5u6DtQmj1bejdWLoYSX2kNq",`<br/>`    "token_type":"Bearer",`<br/>`    "scope":"user/*.*",`<br/>`    "expires_in":99999,`<br/>`    "patient":"56ded6c179c7212042b29984",`<br/>`    "refresh_token":"SZ7WF5diFgp...EKhNguO5do8faZG26kPdtYj9yRzlkX28HSrMfXftl"`<br/>`}` |
@@ -106,7 +106,7 @@ The following table describes all the methods intended for public use (exluding 
 | isLoggedIn() | Returns boolean if user is logged in or not. | none | Boolean: <br/> _true_ if user is logged in, <br/> _false_ if user is not logged in anymore. |
 | create(_resource_) | Creates a new resource on the FHIR server. | _Resource_: the resource to create | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
 | update(_resource_) | Updates an existing resource on the FHIR server. | _Resource_: the resource to update. Note that the `resource.id` must be set and correct. | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
-| search(_resourceType_, _params_) | Searches for an existing resource on the FHIR server with the given params.| <ul><li>_resourceType_: the resource type to look up.</li><li>_params_: the FHIR search parameters (see [documentation](https://www.hl7.org/fhir/resourcelist.html) of corresponding resource for details)</li></ul> | A Promise that: <br/> _resolves_  to the servers response (a FHIR bundle with the search results) if sucessful, or <br/> _rejects_ with an error message. |
+| search(_resourceType_, _params_) | Searches for an existing resource on the FHIR server with the given params.| <ul><li>_resourceType_: the resource type to look up.</li><li>_params_: the FHIR search parameters (see [documentation](https://www.hl7.org/fhir/resourcelist.html) of corresponding resource for details)</li></ul> | A Promise that: <br/> _resolves_  to the servers response (a FHIR bundle with the search results) if successful, or <br/> _rejects_ with an error message. |
 
 # 1.7 Examples
 ### 1.7.1 Authenticate
@@ -180,7 +180,7 @@ myUpdate(validResource: Resource) {
 clone repo  
 `https://github.com/i4mi/fhir-wrappers.ts.git`
 
-checkout dev branch. Then create your own branch with a choosen title according the feature you implement!
+checkout dev branch. Then create your own branch with a chosen title according the feature you implement!
 
 install (dev) dependencies
 `npm install --save`
