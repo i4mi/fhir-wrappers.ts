@@ -335,14 +335,14 @@ export class IonicOnFhirService {
      */
     create(resource: Resource | any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -379,14 +379,14 @@ export class IonicOnFhirService {
 
                 reject('Resource has no id');
             }
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -410,21 +410,21 @@ export class IonicOnFhirService {
 
     /**
      * Searches for one or multiple resources
-     * @param resourceType resource type to look up 
+     * @param resourceType resource type to look up
      * @param params search parameters according fhir resource guide$
      * @returns resolve of resource as JSON if status 200 or 201
      * @returns reject every other case with message
      */
     search(resourceType: string, params: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -622,14 +622,17 @@ export class IonicOnFhirService {
      */
     private checkIfDeviceSecure(): Promise<any> {
         return new Promise((resolve, reject) => {
+          if(this.storage){
+            resolve();
+          }
+          else {
             this.secStorage.create(`${this.authRequestParams.client_id}_auth`).then((s) => {
                 this.storage = s;
                 resolve();
             }).catch((error) => {
                 reject(error);
             });
+          }
         });
     }
 }
-
-
