@@ -14,7 +14,7 @@ export class JSOnFhir {
     patient: '',
     scope: '',
     state: '',
-    language: 'de',
+    language: '',
     fhirVersion: '',
     responseType: 'code'
   }
@@ -37,15 +37,11 @@ export class JSOnFhir {
     // check if we have a jsOnFhir object in sessionStorage
     let persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
     if(persisted != null){
-      if(persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId){
+      if(persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId){
         // assign prototype to the object loaded from storage, so it becomes
         // a full JSOnFhir object with functions
         persisted.__proto__ = JSOnFhir.prototype;
         persisted.apiMethods = new ApiMethods();
-
-        // set redirectUrl
-        persisted.urls.redirect = redirectUrl;
-
         return persisted;
       }
     }
@@ -77,7 +73,11 @@ export class JSOnFhir {
       "scope=" + encodeURIComponent(this.settings.scope) + "&" +
       "redirect_uri=" + encodeURIComponent(this.urls.redirect) + "&" +
       "aud=" + encodeURIComponent(this.urls.service) + "&" +
-      "state=" + this.settings.state + "&language=" + this.settings.language;
+      "state=" + this.settings.state;
+
+      if(this.settings.language.length > 0){
+        authUrl += '&language=' + this.settings.language;
+      }
 
       window.location.href = authUrl;
     })
@@ -101,7 +101,7 @@ export class JSOnFhir {
     return new Promise((resolve, reject) => {
       if(window.location.search.includes('state=') && window.location.search.includes('code=')){
         var urlParams = window.location.search.substring(1).split('&');
-        var state: string, code: string;
+        var state, code: string;
         for (var i = 0; i < urlParams.length; i++)
         {
           var param = urlParams[i].split('=');
@@ -164,7 +164,8 @@ export class JSOnFhir {
   *           - successful:     the response of the server (with token, new refresh-token etc.)
   *           - not sucessful:  an error message
   */
-  refreshAuth(refreshToken: string){
+  refreshAuth(refreshToken: String){
+    console.log('refreshAuth')
     return new Promise((resolve, reject) => {
 
       if(refreshToken === '' || !refreshToken){
@@ -189,7 +190,7 @@ export class JSOnFhir {
           reject("faulty http status: " + response.status + ": " + response.message);
         }
       }).catch(err => {
-        console.log('Error refreshing auth:', err)
+        console.log('fehler:', err)
         reject(err);
       });
     });
@@ -225,7 +226,7 @@ export class JSOnFhir {
   * @returns resolve of resource as JSON if status 200 or 201
   * @returns reject every other case with message
   */
-  create(resource: any){
+  create(resource){
     return new Promise((resolve, reject) => {
       if(!this.isLoggedIn()){
         reject('Not logged in');
@@ -275,7 +276,7 @@ export class JSOnFhir {
       }
 
       // calls update of apimethods
-      this.apiMethods.update(JSON.parse(JSON.stringify(resource)), config).then((response) => {
+      this.apiMethods.update(resource, config).then((response) => {
         if (response.status === 200 || response.status === 201)
         resolve(JSON.parse(response.body));
         else
@@ -323,12 +324,19 @@ export class JSOnFhir {
 
 
   /**
-  * Sets the language for the auth window (default: german)
+  * Sets the language for the auth window
   * @param lang the language as two-char string (eg. 'de', 'en', 'fr' or 'it')
+  * @throws error if the given language string is not
   */
   setLanguage(lang: string){
-    this.settings.language = '';
-    this.persistMe();
+    if(lang.length === 2){
+      this.settings.language = lang.toLowerCase();
+      this.persistMe();
+    }
+    else {
+      throw('wrong parameter: language code is not a two-char string');
+    }
+
   }
 
 
