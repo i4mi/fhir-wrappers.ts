@@ -1,4 +1,9 @@
-# IN DEVELOPMENT! - use at own risk -
+# @i4mi/js-on-fhir FHIR® Library with oAuth 2.0 for angular / vuejs / js
+
+_➰ Use at own risk ➰_
+
+![][~license]
+![][~issues]
 
 Wrapper for the [I4MI fhir-resource-r4 library](https://www.npmjs.com/package/@i4mi/fhir_r4).  
 This library handles the oAuth 2.0 process for any JavaScript web-app on npm. See below for detailed instructions for [using it with Vue.js](#2-vue).
@@ -253,4 +258,11 @@ Go to the global repo issue site on [GitHub](https://github.com/i4mi/fhir-wrappe
 
 Create a new issue with the label ![][~web].
 
+-----
+FHIR® is the registered trademark of HL7 and is used with the permission of HL7. Use of the FHIR trademark does not constitute endorsement of this product by HL7.
+
 [~web]: https://img.shields.io/static/v1?label=-->&message=WEB&color=green
+
+[~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/web
+
+[~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue
