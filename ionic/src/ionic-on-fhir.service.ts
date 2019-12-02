@@ -1,10 +1,9 @@
-import { apiCall, ApiCallArgs, ApiCallResponse, HttpMethod, ApiMethods, ApiConfig } from '@i4mi/fhir_r4';
+import { apiCall, ApiCallResponse, HttpMethod, ApiMethods, ApiConfig, Resource } from '@i4mi/fhir_r4';
 import { InAppBrowser, InAppBrowserObject } from '@ionic-native/in-app-browser/ngx';
 import { SecureStorage, SecureStorageObject } from '@ionic-native/secure-storage/ngx';
 import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES_KEY, InAppBrowserSettings } from './ionic-on-fhir.types';
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Resource } from '@i4mi/fhir_r4/dist/definition';
 
 const jsSHA = require('jssha');
 
@@ -222,11 +221,14 @@ export class IonicOnFhirService {
                 doAuthentication(encodedUrl).then(() => {
                     return this.exchangeTokenForCode();
                 }).then((resp) => {
+                    this.loggedIn = true;
                     resolve(resp);
                 }).catch((error) => {
+                    this.loggedIn = false;
                     reject(error);
                 });
             }).catch((error) => {
+                this.loggedIn = false;
                 reject(error);
             });
         });
@@ -292,14 +294,18 @@ export class IonicOnFhirService {
                 if (response.status === 200) {
                     let refreshResponse: AuthResponse = response.body;
                     this.saveAuthResponse(refreshResponse).then(() => {
+                        this.loggedIn = true;
                         resolve(refreshResponse);
                     }).catch((error) => {
+                        this.loggedIn = false;
                         reject(error);
                     }); 
                 } else {
+                    this.loggedIn = false;
                     reject(response);
                 }
             }).catch((error) => {
+                this.loggedIn = false;
                 reject(error);
             })
         });
@@ -329,14 +335,14 @@ export class IonicOnFhirService {
      */
     create(resource: Resource | any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -346,7 +352,7 @@ export class IonicOnFhirService {
                 // calls create of apimethods
                 this.apiMethods.create(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
@@ -373,14 +379,14 @@ export class IonicOnFhirService {
 
                 reject('Resource has no id');
             }
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -390,7 +396,7 @@ export class IonicOnFhirService {
                 // calls update of apimethods
                 this.apiMethods.update(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
@@ -404,21 +410,21 @@ export class IonicOnFhirService {
 
     /**
      * Searches for one or multiple resources
-     * @param resourceType resource type to look up 
+     * @param resourceType resource type to look up
      * @param params search parameters according fhir resource guide$
      * @returns resolve of resource as JSON if status 200 or 201
      * @returns reject every other case with message
      */
     search(resourceType: string, params: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -428,7 +434,7 @@ export class IonicOnFhirService {
                 // calls search of apimethods
                 this.apiMethods.search(params, resourceType, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
-                        resolve(response.body);
+                        resolve(JSON.parse(response.body));
                     else  
                         reject(response);
                 }).catch((error) => {
@@ -616,14 +622,17 @@ export class IonicOnFhirService {
      */
     private checkIfDeviceSecure(): Promise<any> {
         return new Promise((resolve, reject) => {
+          if(this.storage){
+            resolve();
+          }
+          else {
             this.secStorage.create(`${this.authRequestParams.client_id}_auth`).then((s) => {
                 this.storage = s;
                 resolve();
             }).catch((error) => {
                 reject(error);
             });
+          }
         });
     }
 }
-
-
