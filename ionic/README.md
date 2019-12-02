@@ -1,7 +1,13 @@
-# IN DEVELOPMENT ➰ Use at own risk 🤔 ➰
+# @i4mi/ionic-on-fhir FHIR® Library with oAuth 2.0 for Ionic apps
+
+_➰ Use at own risk ➰_
+
+![][~license]
+![][~issues]
+
 
 Wrapper for the [I4MI fhir-resource-r4](https://github.com/i4mi/fhir-resources-r4) library.  
-This library handles the oAuth 2.0 process for an [ionic 4](https://ionicframework.com/) app. See usage guide below on how to use.
+This is an ionic library for handling the oAuth 2.0 process for an [ionic 4](https://ionicframework.com/) app. So you can easily create a SMART on FHIR App and connect your app to a FHIR server. See usage guide below on how to use.
 
 # Content
 1. [Usage](#1-Usage)  
@@ -197,4 +203,11 @@ Go to the global repo issue site
 
 Create a new issue with the label ![][~ionic].
 
+-----
+FHIR® is the registered trademark of HL7 and is used with the permission of HL7. Use of the FHIR trademark does not constitute endorsement of this product by HL7.
+
 [~ionic]: https://img.shields.io/static/v1?label=-->&message=IONIC&color=blue
+
+[~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/ionic
+
+[~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue

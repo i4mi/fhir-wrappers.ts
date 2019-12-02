@@ -14,7 +14,7 @@ export class JSOnFhir {
     patient: '',
     scope: '',
     state: '',
-    language: 'de',
+    language: '',
     fhirVersion: '',
     responseType: 'code'
   }
@@ -73,7 +73,11 @@ export class JSOnFhir {
       "scope=" + encodeURIComponent(this.settings.scope) + "&" +
       "redirect_uri=" + encodeURIComponent(this.urls.redirect) + "&" +
       "aud=" + encodeURIComponent(this.urls.service) + "&" +
-      "state=" + this.settings.state + "&language=" + this.settings.language;
+      "state=" + this.settings.state;
+
+      if(this.settings.language.length > 0){
+        authUrl += '&language=' + this.settings.language;
+      }
 
       window.location.href = authUrl;
     })
@@ -160,7 +164,7 @@ export class JSOnFhir {
   *           - successful:     the response of the server (with token, new refresh-token etc.)
   *           - not sucessful:  an error message
   */
-  refreshAuth(refreshToken){
+  refreshAuth(refreshToken: String){
     console.log('refreshAuth')
     return new Promise((resolve, reject) => {
 
@@ -320,12 +324,19 @@ export class JSOnFhir {
 
 
   /**
-  * Sets the language for the auth window (default: german)
+  * Sets the language for the auth window
   * @param lang the language as two-char string (eg. 'de', 'en', 'fr' or 'it')
+  * @throws error if the given language string is not
   */
   setLanguage(lang: string){
-    this.settings.language = '';
-    this.persistMe();
+    if(lang.length === 2){
+      this.settings.language = lang.toLowerCase();
+      this.persistMe();
+    }
+    else {
+      throw('wrong parameter: language code is not a two-char string');
+    }
+
   }
 
 
@@ -408,7 +419,7 @@ export class JSOnFhir {
 
   /**
   * Generates random state string with given length
-  * If lengts set to 0, it will take 122
+  * If length is set to 0, it will take 122
   * @param length length of the string to generate
   */
   private generateRandomState(length: number) {
