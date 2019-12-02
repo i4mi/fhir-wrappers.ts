@@ -335,7 +335,7 @@ export class IonicOnFhirService {
      */
     create(resource: Resource | any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
@@ -379,7 +379,7 @@ export class IonicOnFhirService {
 
                 reject('Resource has no id');
             }
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
@@ -417,7 +417,7 @@ export class IonicOnFhirService {
      */
     search(resourceType: string, params: any): Promise<any> {
         return new Promise((resolve, reject) => {
-            this.storage.get(AUTH_RES_KEY).then((res) => {
+            this.getAuthResponse().then((res) => {
                 // checks if logged in and has auth token
                 if (!this.loggedIn && !res) {
                     reject('Not logged in');
