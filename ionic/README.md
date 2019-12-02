@@ -208,6 +208,6 @@ FHIR® is the registered trademark of HL7 and is used with the permission of HL7
 
 [~ionic]: https://img.shields.io/static/v1?label=-->&message=IONIC&color=blue
 
-[~issues]: https://img.shields.io/github/issues-pr/i4mi/fhir-wrappers.ts/ionic
+[~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/ionic
 
 [~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue
