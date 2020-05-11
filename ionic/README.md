@@ -93,6 +93,10 @@ Call authenticate on the server configured:
 ```typescript
 this.ionicOnFhir.authenticate();
 ```
+When you need to pass URL parameters to the authentification service, you can do so by passing them to the function call as an object. For example, if you want to add the parameter `isnew` with the value `never`, you can call authenticate like this:
+```typescript
+this.ionicOnFhir.authenticate({isnew: 'never'});
+```
 
 ### 1.5.2 Session refresh
 Your application needs to check and handle the expires_in time. Now the user does not want to get logged out after every x hours/minutes/seconds. So there is a need to refresh the session.
@@ -103,16 +107,15 @@ this.ionicOnFhir.refreshSession();
 # 1.6 Methods
 The following table describes all the methods intended for public use (excluding the functions from chapter [1.4.1 Misc config](#1.4.1-Misc-config)).
 
-| Function | Description | Params | Returns |
+| Function | Description | Parameters | Returns |
 | --- | --- | --- | ---- |
-| initIonicOnFhir(_fhirServerUrl_, _clientId_) | Set values the library needs for the authentication process. | <ul><li>_fhirServerUrl_: The url to the server (for example test.midata.coop)</li><li>_clientId_: App name given to the auth request as client id</li></ul> | nothing |
-| authenticate() | Opens InAppBrowser and executes the oAuth2.0 process (see [1.5.1](#1.5.1-Authenticate)). | none | Promise with the auth response: <br/>`{`<br/>`    "state":"none",`<br/>`    "access_token":"oSkJQeiTxx4iiK...hqKhFp2Jj5u6DtQmj1bejdWLoYSX2kNq",`<br/>`    "token_type":"Bearer",`<br/>`    "scope":"user/*.*",`<br/>`    "expires_in":99999,`<br/>`    "patient":"56ded6c179c7212042b29984",`<br/>`    "refresh_token":"SZ7WF5diFgp...EKhNguO5do8faZG26kPdtYj9yRzlkX28HSrMfXftl"`<br/>`}` |
+| initIonicOnFhir(_fhirServerUrl_, _clientId_) | Set values the library needs for the authentication process. | _fhirServerUrl_: The url to the server (for example test.midata.coop)<br />_clientId_: App name given to the auth request as client id | nothing |
+| authenticate() | Opens InAppBrowser and executes the oAuth2.0 process (see [1.5.1](#1.5.1-Authenticate)). | _params?_ (optional): Object of URL parameters that are passed on when opening the Auth URL in the InAppBrowser  | Promise with the auth response: <br/>`{`<br/>`    "state":"none",`<br/>`    "access_token":"oSkJQeiTxx4iiK...hqKhFp2Jj5u6DtQmj1bejdWLoYSX2kNq",`<br/>`    "token_type":"Bearer",`<br/>`    "scope":"user/*.*",`<br/>`    "expires_in":99999,`<br/>`    "patient":"56ded6c179c7212042b29984",`<br/>`    "refresh_token":"SZ7WF5diFgp...EKhNguO5do8faZG26kPdtYj9yRzlkX28HSrMfXftl"`<br/>`}` |
 | refreshSession() | Tries to refresh the authentication token by authorizing with the help of the refresh token. | none | Promise with the auth response: <br/>`{`<br/>`    "state":"none",`<br/>`    "access_token":"oSkJQeiTxx4iiK...hqKhFp2Jj5u6DtQmj1bejdWLoYSX2kNq",`<br/>`    "token_type":"Bearer",`<br/>`    "scope":"user/*.*",`<br/>`    "expires_in":99999,`<br/>`    "patient":"56ded6c179c7212042b29984",`<br/>`    "refresh_token":"SZ7WF5diFgp...EKhNguO5do8faZG26kPdtYj9yRzlkX28HSrMfXftl"`<br/>`}` |
 | logout() | Destroys all auth information. | none | Promise containing destroyed information |
-| isLoggedIn() | Returns boolean if user is logged in or not. | none | Boolean: <br/> _true_ if user is logged in, <br/> _false_ if user is not logged in anymore. |
-| create(_resource_) | Creates a new resource on the FHIR server. | _Resource_: the resource to create | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
-| update(_resource_) | Updates an existing resource on the FHIR server. | _Resource_: the resource to update. Note that the `resource.id` must be set and correct. | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
-| search(_resourceType_, _params_) | Searches for an existing resource on the FHIR server with the given params.| <ul><li>_resourceType_: the resource type to look up.</li><li>_params_: the FHIR search parameters (see [documentation](https://www.hl7.org/fhir/resourcelist.html) of corresponding resource for details)</li></ul> | A Promise that: <br/> _resolves_  to the servers response (a FHIR bundle with the search results) if successful, or <br/> _rejects_ with an error message. |
+| create(_resource_) | Creates a new resource on the FHIR server. | _resource_: the resource to create | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
+| update(_resource_) | Updates an existing resource on the FHIR server. | _resource_: the resource to update. Note that the `resource.id` must be set and correct. | A Promise that: <br/> _resolves_ with the created resource if successful (HTTP status 200 / 201), or <br/> _rejects_ with an error message. |
+| search(_resourceType_, _params_) | Searches for an existing resource on the FHIR server with the given params.| _resourceType_: the resource type to look up.<br />_params_: the FHIR search parameters (see [documentation](https://www.hl7.org/fhir/resourcelist.html) of corresponding resource for details)| A Promise that: <br/> _resolves_  to the servers response (a FHIR bundle with the search results) if successful, or <br/> _rejects_ with an error message. |
 
 # 1.7 Examples
 ### 1.7.1 Authenticate
