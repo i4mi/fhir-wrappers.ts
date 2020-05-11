@@ -354,7 +354,7 @@ export class IonicOnFhirService {
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -398,7 +398,7 @@ export class IonicOnFhirService {
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -436,7 +436,7 @@ export class IonicOnFhirService {
                 }
 
                 // configs parameters according apimethods
-                const authParams: AuthResponse = JSON.parse(res);
+                const authParams: AuthResponse = typeof res === 'object' ? res : JSON.parse(res);
                 const config: ApiConfig = {
                     access_token: authParams.access_token,
                     authorization_type: 'Bearer',
@@ -634,12 +634,17 @@ export class IonicOnFhirService {
      */
     private checkIfDeviceSecure(): Promise<any> {
         return new Promise((resolve, reject) => {
+          if(this.storage){
+            resolve();
+          }
+          else {
             this.secStorage.create(`${this.authRequestParams.client_id}_auth`).then((s) => {
                 this.storage = s;
                 resolve();
             }).catch((error) => {
                 reject(error);
             });
+          }
         });
     }
 }
