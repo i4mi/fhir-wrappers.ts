@@ -81,10 +81,14 @@ export class IonicOnFhirService {
     }
 
     /**
-     * Checks if user is logged in
+     * Checks if user is logged in. This is deprecated and will be removed, because
+     * it's not reliable. Instead, you are encouraged to keep track of your login-state
+     * in your application.
      * @returns boolean (true if logged in)
+     * @deprecated
      */
     isLoggedIn(): boolean {
+        console.warn('ionic-on-fhir isLoggedIn(): Method is deprecated and will be removed because it\'s unreliable. Keep track of login-state in your application.')
         return this.loggedIn;
     }
 
@@ -97,9 +101,9 @@ export class IonicOnFhirService {
     configInAppBrowser(settings: Array<InAppBrowserSettings>) {
         this.iabSettings = settings;
     }
-    
+
     /**
-     * Function that lets you define a different content type for you fhir server 
+     * Function that lets you define a different content type for you fhir server
      * than the default type of the lib. Default: "application/fhir+json;fhirVersion=4.0"
      * @param contentType content type for header param
      */
@@ -136,25 +140,27 @@ export class IonicOnFhirService {
 
     /**
      * Authenticate someone over oAuth2
+     * @param params (optional) an Object
      * @returns Promise<any> -
-     * if success: returns auth response (type AuthResponse) and saves response to secure storage  
+     * if success: returns auth response (type AuthResponse) and saves response to secure storage
      * else: error message
      */
-    authenticate(): Promise<any> {
+    authenticate(params?: Object): Promise<any> {
+        console.log('authenticate, params are', params)
         this.authRequestParams.redirect_uri = 'http://localhost/callback';
 
         // function that executes the authentication
         // according oAuth 2 from SMART on FHIR
-        // @returns error on rejectu
+        // @returns error on reject
         const doAuthentication = (url: string): Promise<any> => {
             return new Promise((resolve, reject) => {
                 if (typeof this.fhirServerUrl === 'undefined') {
-                    reject('Ionic On FHIR: Plase call initIonicOnFhir first to define the necessairy configurations');
+                    reject('Please call initIonicOnFhir() first to define the necessary configurations');
                 }
 
                 let autoClose = false;
                 let effectiveIabSettings = 'location=no,clearcache=yes';
-                if (typeof this.iabSettings !== 'undefined' && 
+                if (typeof this.iabSettings !== 'undefined' &&
                     this.iabSettings.length !== 0) {
                     effectiveIabSettings = '';
                     this.iabSettings.forEach((setting, index) => {
@@ -215,6 +221,12 @@ export class IonicOnFhirService {
                     authUrl += `&launch=${this.authRequestParams.launch}`;
                 }
 
+                if(params) {
+                    Object.keys(params).forEach((key) => {
+                        authUrl = authUrl + '&' + key + '=' + params[key].toString();
+                    });
+                }
+
                 const encodedUrl = encodeURI(authUrl);
 
                 // now execute effective authentication
@@ -236,9 +248,9 @@ export class IonicOnFhirService {
 
     /**
      * Refresh session and refreshes it, if user was logged in.
-     * Tries to refresh the authentication token by authorizing with the help of the refresh token. 
-     * This will generate a new authentication as well as a new refresh token. On successful refresh, 
-     * the old refresh_token will be invalid and both the access_token and the refresh_token will be overwritten. 
+     * Tries to refresh the authentication token by authorizing with the help of the refresh token.
+     * This will generate a new authentication as well as a new refresh token. On successful refresh,
+     * the old refresh_token will be invalid and both the access_token and the refresh_token will be overwritten.
      * Previous access_tokens will remain valid until their expiration timestamp is exceeded.
      * @returns resolves the auth response if success
      * @returns reject every other case
@@ -249,7 +261,7 @@ export class IonicOnFhirService {
             return new Promise((resolve, reject) => {
                 let urlParams = new URLSearchParams();
                 urlParams.append('grant_type', 'refresh_token');
-    
+
                 if (!this.authResponseParams.refresh_token) {
                     this.getAuthResponse().then((result: AuthResponse) => {
                         urlParams.append('refresh_token', result.refresh_token);
@@ -289,7 +301,7 @@ export class IonicOnFhirService {
             this.fetchConformanceStatement().then(() => {
                 return defineParameters();
             }).then((params) => {
-                return doSessionRefresh(params);   
+                return doSessionRefresh(params);
             }).then((response) => {
                 if (response.status === 200) {
                     let refreshResponse: AuthResponse = response.body;
@@ -299,7 +311,7 @@ export class IonicOnFhirService {
                     }).catch((error) => {
                         this.loggedIn = false;
                         reject(error);
-                    }); 
+                    });
                 } else {
                     this.loggedIn = false;
                     reject(response);
@@ -353,7 +365,7 @@ export class IonicOnFhirService {
                 this.apiMethods.create(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
                         resolve(JSON.parse(response.body));
-                    else  
+                    else
                         reject(response);
                 }).catch((error) => {
                     reject(error);
@@ -397,7 +409,7 @@ export class IonicOnFhirService {
                 this.apiMethods.update(resource, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
                         resolve(JSON.parse(response.body));
-                    else  
+                    else
                         reject(response);
                 }).catch((error) => {
                     reject(error);
@@ -435,7 +447,7 @@ export class IonicOnFhirService {
                 this.apiMethods.search(params, resourceType, config).then((response) => {
                     if (response.status === 200 || response.status === 201)
                         resolve(JSON.parse(response.body));
-                    else  
+                    else
                         reject(response);
                 }).catch((error) => {
                     reject(error);
@@ -445,7 +457,7 @@ export class IonicOnFhirService {
             });
         });
     }
-    
+
     /**
      * Makes api call to get the auth and token url
      * from the fhir/midatata of the server.
