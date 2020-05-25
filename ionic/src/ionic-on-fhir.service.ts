@@ -146,7 +146,6 @@ export class IonicOnFhirService {
      * else: error message
      */
     authenticate(params?: Object): Promise<any> {
-        console.log('authenticate, params are', params)
         this.authRequestParams.redirect_uri = 'http://localhost/callback';
 
         // function that executes the authentication
