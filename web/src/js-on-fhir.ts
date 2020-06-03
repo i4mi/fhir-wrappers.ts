@@ -99,7 +99,10 @@ export class JSOnFhir {
   */
   handleAuthResponse(){
     return new Promise((resolve, reject) => {
-      if(window.location.search.includes('state=') && window.location.search.includes('code=')){
+      const paramString = window.location.search.length > 0
+                            ? window.location.search
+                            : '?' + window.location.hash.split('?')[1];
+      if(paramString.includes('state=') && paramString.includes('code=')){
         var urlParams = window.location.search.substring(1).split('&');
         var state, code: string;
         for (var i = 0; i < urlParams.length; i++)
