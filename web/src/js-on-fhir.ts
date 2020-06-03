@@ -359,6 +359,18 @@ export class JSOnFhir {
     this.persistMe();
   }
 
+  /**
+  * Returns the resource id of the Patient resource of the logged in user
+  * @return the Patient Resource ID as a string, if logged in
+  *         undefined if not logged in
+  */
+  getPatient() {
+    if(this.settings.patient && this.settings.patient != ''){
+        return this.settings.patient;
+    } else {
+        return undefined;
+    }
+  }
 
   /**
   * Makes api call to get the auth and token url
