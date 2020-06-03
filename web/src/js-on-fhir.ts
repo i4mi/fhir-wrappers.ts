@@ -99,11 +99,12 @@ export class JSOnFhir {
   */
   handleAuthResponse(){
     return new Promise((resolve, reject) => {
-      const paramString = window.location.search.length > 0
-                            ? window.location.search
-                            : '?' + window.location.hash.split('?')[1];
-      if(paramString.includes('state=') && paramString.includes('code=')){
-        var urlParams = window.location.search.substring(1).split('&');
+        // when the url has #, window.location.search is empty and we have to parse windows.location.hash
+        const paramString = window.location.search.length > 0
+                               ? window.location.search
+                               : '?' + window.location.hash.split('?')[1];
+        if(paramString.includes('state=') && paramString.includes('code=')){
+          var urlParams = window.location.search.substring(1).split('&');
         var state, code: string;
         for (var i = 0; i < urlParams.length; i++)
         {
