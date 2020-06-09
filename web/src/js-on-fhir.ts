@@ -104,8 +104,8 @@ export class JSOnFhir {
                                ? window.location.search
                                : '?' + window.location.hash.split('?')[1];
         if(paramString.includes('state=') && paramString.includes('code=')){
-          var urlParams = window.location.search.substring(1).split('&');
-        var state, code: string;
+          var urlParams = paramString.substring(1).split('&');
+        var state: string, code: string;
         for (var i = 0; i < urlParams.length; i++)
         {
           var param = urlParams[i].split('=');
