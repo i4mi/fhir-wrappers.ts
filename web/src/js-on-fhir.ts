@@ -399,7 +399,7 @@ export class JSOnFhir {
   * Returns a json response with a resource in the .body
   * Rejects the original error if one occures
   */
-  private fetchConformanceStatement(): Promise<any> {
+  fetchConformanceStatement(): Promise<any> {
     return new Promise((resolve, reject) => {
       const cfUrl = (typeof this.urls.conformance !== 'undefined') ? this.urls.conformance : this.urls.service + '/metadata';
 
@@ -420,19 +420,16 @@ export class JSOnFhir {
   /**
   * function that interprets the result of the api request
   */
-  private interpretConformanceStatementResponse(response): Promise<any> {
-    return new Promise((resolve, reject) => {
+  private interpretConformanceStatementResponse(response): void {
       if (response.status === 200) {
         response.body = JSON.parse(response.body);
         this.urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
         this.urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
         this.settings.fhirVersion = response.body.fhirVersion;
         this.persistMe();
-        resolve(response);
       } else {
-        reject(response);
+        throw new Error('Wrong response status (' + response.status + ')');
       }
-    });
   }
 
   /**
