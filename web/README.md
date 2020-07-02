@@ -102,7 +102,7 @@ The following table describes all the methods intended for public use.
 
 | Function            | Description                            | Params | Returns |  
 | ---                 | ---                                    | ---    |---      |
-|authenticate()     |Starts the two-step authentication process (see [1.3.1](#1.3.1-authStart)).|none |nothing<br/>(but redirects to the servers auth page) |
+|authenticate()     |Starts the two-step authentication process (see [1.3.1](#1.3.1-authStart)).|*params*: (optional) additional params to be added to the auth URL, as key/value object.  |nothing<br/>(but redirects to the servers auth page) |
 |handleAuthResponse()|Handles the callback by the auth server. Has to be called when loading the page by the *redirect_url* (see [1.2.1](#1.2.1-constructor)). The returned auth token is handled by the plugin and does not require further action.|none|A promise that resolves to <br/>a) the servers response when in the auth process and the request was successful (HTTP status 200 / 201)<br/>b) null when not in the auth process or <br/>c) rejects with an error message when in the auth process and an error occurred|
 refreshAuth(*rToken*)  |Refreshes the authentication with a refresh token. The returned auth token is handled by the plugin and does not require further action.| *rToken*: a refresh token that was saved from an earlier servers auth response.|A promise that <br/>resolves to the servers response (including a new refresh token) or <br/>rejects with an error message.|
 isLoggedIn()          |Checks if an auth token is set and not expired.|none|*true* if a token is set and not yet expired, *false* if no token is set or it is expired.|

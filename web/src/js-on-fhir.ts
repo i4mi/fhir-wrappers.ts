@@ -59,8 +59,9 @@ export class JSOnFhir {
   /**
   * This function starts the oAuth authentication procedure, by opening the auth
   * page for the user to login to the fhir server.
+  * @param params (optional) an Object with key / value pairs
   */
-  authenticate(){
+  authenticate(params?: Object){
     this.fetchConformanceStatement()
     .then(res => {
       // generate auth url
@@ -74,6 +75,12 @@ export class JSOnFhir {
 
       if(this.settings.language.length > 0){
         authUrl += '&language=' + this.settings.language;
+      }
+
+      if(params) {
+          Object.keys(params).forEach((key) => {
+              authUrl = authUrl + '&' + key + '=' + params[key].toString();
+          });
       }
 
       window.location.href = authUrl;
