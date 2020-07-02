@@ -59,13 +59,11 @@ export class JSOnFhir {
   /**
   * This function starts the oAuth authentication procedure, by opening the auth
   * page for the user to login to the fhir server.
+  * @param params (optional) an Object with key / value pairs
   */
-  authenticate(){
+  authenticate(params?: Object){
     this.fetchConformanceStatement()
     .then(res => {
-      // generate state
-      this.generateRandomState(64);
-
       // generate auth url
       let authUrl = this.urls.auth + '?' +
       'response_type=' + this.settings.responseType + '&' +
@@ -73,16 +71,23 @@ export class JSOnFhir {
       "scope=" + encodeURIComponent(this.settings.scope) + "&" +
       "redirect_uri=" + encodeURIComponent(this.urls.redirect) + "&" +
       "aud=" + encodeURIComponent(this.urls.service) + "&" +
-      "state=" + this.settings.state;
+      "state=" + this.generateRandomState(64);
 
       if(this.settings.language.length > 0){
         authUrl += '&language=' + this.settings.language;
+      }
+
+      if(params) {
+          Object.keys(params).forEach((key) => {
+              authUrl = authUrl + '&' + key + '=' + params[key].toString();
+          });
       }
 
       window.location.href = authUrl;
     })
     .catch(err => {
       console.warn("error fetching auth statement", err);
+      throw(err);
     })
   }
 
@@ -377,12 +382,31 @@ export class JSOnFhir {
   }
 
   /**
+  * Generates random state string with given length
+  * If length is set to 0, it will take 122
+  * @param length length of the string to generate
+  * @return the generated state
+  */
+   generateRandomState(length: number) {
+    if (length <= 0) {
+      length = 122;
+    }
+    const possibilities = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
+    this.settings.state = '';
+    for (let i = 0; i < length; i++) {
+      this.settings.state += possibilities.charAt(Math.floor(Math.random() * possibilities.length));
+    }
+    this.persistMe();
+    return this.settings.state;
+  }
+
+  /**
   * Makes api call to get the auth and token url
   * from the fhir/midatata of the server.
   * Returns a json response with a resource in the .body
   * Rejects the original error if one occures
   */
-  private fetchConformanceStatement(): Promise<any> {
+  fetchConformanceStatement(): Promise<any> {
     return new Promise((resolve, reject) => {
       const cfUrl = (typeof this.urls.conformance !== 'undefined') ? this.urls.conformance : this.urls.service + '/metadata';
 
@@ -403,19 +427,16 @@ export class JSOnFhir {
   /**
   * function that interprets the result of the api request
   */
-  private interpretConformanceStatementResponse(response): Promise<any> {
-    return new Promise((resolve, reject) => {
+  private interpretConformanceStatementResponse(response): void {
       if (response.status === 200) {
         response.body = JSON.parse(response.body);
         this.urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
         this.urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
         this.settings.fhirVersion = response.body.fhirVersion;
         this.persistMe();
-        resolve(response);
       } else {
-        reject(response);
+        throw new Error('Wrong response status (' + response.status + ')');
       }
-    });
   }
 
   /**
@@ -431,25 +452,6 @@ export class JSOnFhir {
 
     this.persistMe();
   }
-
-
-  /**
-  * Generates random state string with given length
-  * If length is set to 0, it will take 122
-  * @param length length of the string to generate
-  */
-  private generateRandomState(length: number) {
-    if (length <= 0) {
-      length = 122;
-    }
-    const possibilities = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-    this.settings.state = '';
-    for (let i = 0; i < length; i++) {
-      this.settings.state += possibilities.charAt(Math.floor(Math.random() * possibilities.length));
-    }
-    this.persistMe();
-  }
-
 
   /**
   * helper function that saves the whole object to sessionStorage,
