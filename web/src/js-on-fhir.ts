@@ -300,11 +300,11 @@ export class JSOnFhir {
   /**
   * Searches for one or multiple resources
   * @param resourceType resource type to look up
-  * @param params search parameters according fhir resource guide
+  * @param params search parameters according fhir resource guide (not mandatory)
   * @returns resolve of resource as JSON if status 200 or 201
   * @returns reject every other case with message
   */
-  search(resourceType, params){
+  search(resourceType, params?){
     return new Promise((resolve, reject) => {
       // checks if logged in and has auth token
       if (!this.isLoggedIn()) {
