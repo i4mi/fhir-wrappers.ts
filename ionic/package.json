@@ -45,7 +45,6 @@
         "@ionic-native/in-app-browser": "^5.13.0",
         "@ionic-native/secure-storage": "^5.16.0",
         "@types/node": "^6.0.60",
-        "jssha": "^2.3.1",
         "rxjs": "^6.5.3",
         "typescript": "3.5.3",
         "zone.js": "^0.9.1"
