@@ -7,7 +7,7 @@ _➰ Use at own risk ➰_
 
 
 Wrapper for the [I4MI fhir-resource-r4](https://github.com/i4mi/fhir-resources-r4) library.  
-This is an ionic library for handling the oAuth 2.0 process for an [ionic 4](https://ionicframework.com/) app. So you can easily create a SMART on FHIR App and connect your app to a FHIR server. See usage guide below on how to use.
+This is an ionic library for handling the oAuth 2.0 process for an [ionic 4/5](https://ionicframework.com/) app. So you can easily create a SMART on FHIR App and connect your app to a FHIR server. See usage guide below on how to use.
 
 # Content
 1. [Usage](#1-Usage)  
@@ -31,7 +31,6 @@ Install package with:
 __IMPORTANT:__  
 Install the in app browser plugin before using this library:
 ```
-$ npm i jssha
 $ npm i @ionic-native/in-app-browser
 $ npm i @ionic-native/secure-storage
 
