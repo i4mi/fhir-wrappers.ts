@@ -5,8 +5,6 @@ import { AuthRequest, AuthResponse, TokenExchangeRequest, TokenRequest, AUTH_RES
 import { HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
-const jsSHA = require('jssha');
-
 @Injectable({
     providedIn: 'root'
 })
@@ -41,9 +39,6 @@ export class IonicOnFhirService {
     // urls
     private conformanceStatementUrl: string;
     private fhirServerUrl: string;
-
-    // temp state for auth
-    private stateHash: string;
 
     // storage
     private storage: SecureStorageObject;
@@ -504,9 +499,6 @@ export class IonicOnFhirService {
      */
     private initSession() {
         this.generateRandomState(128);
-        const shaObj = new jsSHA('SHA-256', 'TEXT'); // create a SHA-256 Base64 hash out of the
-        shaObj.update(this.authRequestParams.state); // generates hash out of state
-        this.stateHash = shaObj.getHash('B64'); // transform the hash value into the Base64URL encoded
     }
 
     /**
