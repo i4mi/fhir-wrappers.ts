@@ -254,6 +254,7 @@ export class JSOnFhir {
         else
         reject(response);
       }).catch((error) => {
+        this.handleError(error);
         reject(error);
       });
     });
@@ -291,6 +292,7 @@ export class JSOnFhir {
         else
         reject(response);
       }).catch((error) => {
+        this.handleError(error);
         reject(error);
       });
     });
@@ -326,6 +328,7 @@ export class JSOnFhir {
           reject(response);
         }
       }).catch((error) => {
+        this.handleError(error);
         reject(error);
       });
     });
@@ -423,6 +426,15 @@ export class JSOnFhir {
     });
   }
 
+  /**
+  * Returns the current access token, if available.
+  */
+  getAccessToken(): string {
+      return (this.auth && this.auth.token)
+                    ? this.auth.token
+                    : undefined;
+  }
+
 
   /**
   * function that interprets the result of the api request
@@ -459,5 +471,16 @@ export class JSOnFhir {
   */
   private persistMe(){
     sessionStorage.setItem('jsOnFhir', JSON.stringify(this));
+  }
+
+  /**
+  * Helper function for reacting to errors, like for example expired token.
+  */
+  private handleError(error) {
+      if (error.body === 'Invalid token'
+        || error.body === 'Expired token'
+        || error.status === 401) {
+        this.logout();
+      }
   }
 }
