@@ -426,6 +426,15 @@ export class JSOnFhir {
     });
   }
 
+  /**
+  * Returns the current access token, if available.
+  */
+  getAccessToken(): string {
+      return (this.auth && this.auth.token)
+                    ? this.auth.token
+                    : undefined;
+  }
+
 
   /**
   * function that interprets the result of the api request
