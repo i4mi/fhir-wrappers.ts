@@ -23,6 +23,12 @@ This is an ionic library for handling the oAuth 2.0 process for an [ionic 4/5](h
 
 # 1 Usage
 
+Please keep in mind that `@i4mi/ionic-on-fhir` currently only works when running Ionic on a device or emulator. The authentification workflow is not supported when running Ionic in a browser using `ionic serve`.
+
+If you're developping an Ionic application which is targeted to run in the browser, consider using the [I4MI js-on-fhir](https://github.com/i4mi/fhir-wrappers.ts/tree/master/web) library.
+
+If your project is targeted to run as an Ionic app on iOS and / or Android devices, use real devices or emulators for testing (here, the `ionic cordova run android --livereload` argument comes in handy).
+
 ## 1.1 Install package
 Install package with:  
 `npm i @i4mi/ionic-on-fhir`
@@ -74,7 +80,6 @@ the parameters correspond to:
 There are some configuration possibilities, which you can/have-to use before the authentication process starts.
 Possible functions:  
 
-
 | Function           | Params                            | Description |  
 | ---                | ---                               | --- |  
 | configInAppBrowser | `Array<{ key: 'X', value: 'Y' }>` | Customize your in app browser with your own config! Look up all keys @ [the documentation](https://github.com/apache/cordova-plugin-inappbrowser)      |  
@@ -83,6 +88,8 @@ Possible functions:
 | differentiateAud   | aud as string                     | If the url for your api calls diverges from `/fhir` here is the function to set it                                                                               |
 | differentiateContentType   | content-type as string                     | If the content type (or accept) of your fhir server is another than the default `application/fhir+json;fhirVersion=4.0` define it yourself   |
 
+### 1.4.2 MIDATA config
+If you're using MIDATA as a FHIR server, make sure to add `http://localhost` to your allowed redirect URIs.
 
 ## 1.5 Authenticate and session refresh
 Before you can read or write to the FHIR server, you need to authenticate with OAuth2.0. This is a two-step process. This library will handle the whole process for you. Furthermore, if you're already logged in the library can refresh your session.
