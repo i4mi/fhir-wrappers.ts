@@ -23,6 +23,7 @@ For projects using the IONIC framework, you may consider the [@i4mi/ionic-on-fhi
   - [2.2 Demo app](#3-demo-app)
 - [3 Dev](#3-dev)
 - [4 Submit issues](#4-issues)
+- [5 Changelog](#5-changelog)
 
 <a name="1-usage"></a>
 ## 1 Usage
@@ -51,6 +52,14 @@ where the parameters correspond to:
 - *redirect_url*: the URL the server can talk back to your app during the auth process. When testing locally, this may look like `http://localhost:8080` or similar. The page loaded from this exact URL must call the `handleAuthResponse()` function (see below). Also mind that the *redirect_url* may have to be registered server-side for security reasons.
 
 The constructor keeps track of your JSOnFhir instances and persists them over page reloads, as long as you keep the browser session. This means that when you call the constructor with the same parameters again during a session, the earlier created instance is restored instead of creating a new one, including all the auth details.
+
+<a name="1.2.1-no-auth"></a>
+#### 1.2.2 Authentification free FHIR servers
+If you want to use js-on-fhir with a FHIR server that does not need authentification (e.g. when accessing the [EPD Playground with the Mobile Access Gateway](https://epdplayground.ch/index.php?title=Main_Page), or when you're doing the [FHIR Drills tutorial](https://fhir-drills.github.io/index.html)), you can set the optional *doesNotNeedAuth* parameter in the constructor to true:
+```javascript
+const fhir = new JSOnFhir('server_url', '', '', true);
+```
+With this setting, you will be able to do read and / or write requests (depending on the server's configuration) without having to deal with the auth process. The second and third parameter of the constructor (*client_id* and *redirect_url*) can be empty strings, but should not be `null` or `undefined`.
 
 <a name="1.3-auth"></a>
 ### 1.3 Auth process
@@ -267,3 +276,24 @@ FHIR® is the registered trademark of HL7 and is used with the permission of HL7
 [~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/web
 
 [~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue
+
+## 5 Changelog
+| Version | Date     | Changes      |
+| ---     | ---      | ---     |
+| 0.1.0   |2021-10-18| - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
+| 0.0.21  |2021-09-06| Updated some dependencies.|
+| 0.0.20  |2020-11-20| Add *getAccessToken()* method.|
+| 0.0.19  |2020-11-03| Logout when server responds with 401 or invalid / expired token.|
+| 0.0.18  |2020-07-06| Update README and make params in *search()* optional.|
+| 0.0.17  |2020-07-02| Enable additional (optional) parameters on authenticate().|
+| 0.0.16  |2020-06-12| Make *fetchConformanceStatement()* public.|
+| 0.0.15  |2020-06-11| Make *generateRandomState()* function public and let it return the state.|
+| 0.0.14  |2020-06-09| Bugfix.|
+| 0.0.13  |2020-06-03| Fix a bug where Webapps with '#' in URL could not authentificate.|
+| 0.0.12  |2020-06-03| - Update dependencies<br />- Add *getPatient()* method.|
+| 0.0.11  |2019-12-02| Update README with License and FHIR trademark remarks.|
+| 0.0.9   |2019-11-22| Fix broxen *setLanguage()* method.|
+| 0.0.6   |2019-09-20| Update dependencies and bugfix.|
+| 0.0.5   |2019-09-10| Add demo app to and fix README.|
+| 0.0.4   |2019-09-09| Cleanup and adjust README.|
+| 0.0.1   |2019-08-29| Initial version.|

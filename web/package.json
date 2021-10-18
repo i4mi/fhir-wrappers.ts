@@ -1,6 +1,6 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "0.0.21",
+    "version": "0.1.0",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
     "main": "js-on-fhir/index.js",
     "scripts": {
@@ -36,7 +36,6 @@
     ],
     "devDependencies": {
         "webpack-cli": "^4.8.0",
-        "awesome-typescript-loader": "^5.2.1",
         "typescript": "^4.4.0",
         "webpack": "^5.52.0"
     }
