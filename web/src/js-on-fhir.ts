@@ -16,7 +16,8 @@ export class JSOnFhir {
     state: '',
     language: '',
     fhirVersion: '',
-    responseType: 'code'
+    responseType: 'code',
+    noAuth: false
   }
   private auth = {
     token: '',
@@ -29,11 +30,16 @@ export class JSOnFhir {
   /**
   * Creates a new jsOnFhir object and persists it in the sessionStorage, so it is
   * still available after a page relaunch
-  * @param serverUrl    the url of the fhir server, e.g. 'https://test.midata.coop'
-  * @param clientId     the id of your fhir application
-  * @param redirectUrl  the url where the callback of the oAuth2.0 can be directed
+  * @param serverUrl        the url of the fhir server, e.g. 'https://test.midata.coop'
+  * @param clientId         the id of your fhir application
+  * @param redirectUrl      the url where the callback of the oAuth2.0 can be directed
+  * @param doesNotNeedAuth? optional parameter. Set to true when the FHIR server you're
+  *                         using doesn't require authentification (eg. when connecting to
+  *                         the EPD playground via MobileAccessGateway). In this case, the
+  *                         parameters clientId and redirectUrl do not matter (but still
+  *                         have to be set.)
   */
-  constructor(serverUrl: string, clientId: string, redirectUrl: string){
+  constructor(serverUrl: string, clientId: string, redirectUrl: string, doesNotNeedAuth?: boolean){
     // check if we have a jsOnFhir object in sessionStorage
     let persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
     if(persisted != null){
@@ -52,6 +58,7 @@ export class JSOnFhir {
     this.urls.redirect = redirectUrl;
     this.settings.client = clientId;
     this.settings.scope = 'user/*.*';
+    this.settings.noAuth = doesNotNeedAuth ? doesNotNeedAuth : false;
     this.persistMe();
   }
 
@@ -62,6 +69,7 @@ export class JSOnFhir {
   * @param params (optional) an Object with key / value pairs
   */
   authenticate(params?: Object){
+    if (this.settings.noAuth) return;
     this.fetchConformanceStatement()
     .then(res => {
       // generate auth url
@@ -172,9 +180,13 @@ export class JSOnFhir {
   * @returns a promise with, when:
   *           - successful:     the response of the server (with token, new refresh-token etc.)
   *           - not sucessful:  an error message
+  *           - doesNotNeedAuth set in constructor:
+  *                             an empty promise
   */
   refreshAuth(refreshToken: String){
-    console.log('refreshAuth')
+    if (this.settings.noAuth) {
+        return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
 
       if(refreshToken === '' || !refreshToken){
@@ -206,7 +218,8 @@ export class JSOnFhir {
   }
 
   /**
-  * Checks if a token is set and not expired
+  * Checks if a token is set and not expired. Will also return false when doesNotNeedAuth
+  * was set to true in the constructor.
   * @returns boolean (true if non-expired token set)
   */
   isLoggedIn(){
@@ -237,7 +250,7 @@ export class JSOnFhir {
   */
   create(resource){
     return new Promise((resolve, reject) => {
-      if(!this.isLoggedIn()){
+      if(!(this.isLoggedIn() || this.settings.noAuth)){
         reject('Not logged in');
       }
 
@@ -275,7 +288,7 @@ export class JSOnFhir {
         reject('Resource has no id');
       }
 
-      if (!this.isLoggedIn()) {
+      if (!(this.isLoggedIn()  || this.settings.noAuth)) {
         reject('Not logged in');
       }
 
@@ -309,7 +322,7 @@ export class JSOnFhir {
   search(resourceType, params?){
     return new Promise((resolve, reject) => {
       // checks if logged in and has auth token
-      if (!this.isLoggedIn()) {
+      if (!(this.isLoggedIn()  || this.settings.noAuth)) {
         reject('Not logged in');
       }
 
