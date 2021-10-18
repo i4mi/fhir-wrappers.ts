@@ -268,15 +268,6 @@ Go to the global repo issue site on [GitHub](https://github.com/i4mi/fhir-wrappe
 
 Create a new issue with the label ![][~web].
 
------
-FHIR® is the registered trademark of HL7 and is used with the permission of HL7. Use of the FHIR trademark does not constitute endorsement of this product by HL7.
-
-[~web]: https://img.shields.io/static/v1?label=-->&message=WEB&color=green
-
-[~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/web
-
-[~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue
-
 ## 5 Changelog
 | Version | Date     | Changes      |
 | ---     | ---      | ---     |
@@ -297,3 +288,12 @@ FHIR® is the registered trademark of HL7 and is used with the permission of HL7
 | 0.0.5   |2019-09-10| Add demo app to and fix README.|
 | 0.0.4   |2019-09-09| Cleanup and adjust README.|
 | 0.0.1   |2019-08-29| Initial version.|
+
+-----
+FHIR® is the registered trademark of HL7 and is used with the permission of HL7. Use of the FHIR trademark does not constitute endorsement of this product by HL7.
+
+[~web]: https://img.shields.io/static/v1?label=-->&message=WEB&color=green
+
+[~issues]: https://img.shields.io/github/issues-raw/i4mi/fhir-wrappers.ts/web
+
+[~license]: https://img.shields.io/static/v1?label=license&message=Apache-2.0&color=blue
