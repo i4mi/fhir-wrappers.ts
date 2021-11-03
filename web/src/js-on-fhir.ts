@@ -352,7 +352,8 @@ export class JSOnFhir {
   * @returns the response of the server if successful
   * @returns reject every other case with message
   */
-  processMessage(message) {
+  processMessage(message, endpoint?) {
+      endpoint = endpoint || '/$process-message'
       if (message.resourceType !== 'Bundle' || message.type !== 'message') {
           throw new Error('invalid parameter: resource is not a Bundle or not of type message.');
       }
@@ -361,7 +362,7 @@ export class JSOnFhir {
       }
       return new Promise((resolve, reject) => {
           apiCall({
-            url: this.urls.service + '/$process-message',
+            url: this.urls.service + endpoint,
             method: HttpMethod.POST,
             headers: {
               'Content-Type': 'application/fhir+json; fhirVersion=4.0'
