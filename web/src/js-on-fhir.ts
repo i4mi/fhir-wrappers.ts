@@ -1,7 +1,7 @@
 import { apiCall, HttpMethod, ApiMethods } from '@i4mi/fhir_r4';
 
 export class JSOnFhir {
-  private apiMethods = new ApiMethods;
+  private apiMethods = new ApiMethods();
   private urls = {
     service: '',
     conformance: '',
@@ -332,7 +332,6 @@ export class JSOnFhir {
         base_url: this.urls.service
       }
 
-      // calls search of apimethods
       this.apiMethods.search(params, resourceType, config).then((response) => {
         if (response.status === 200 || response.status === 201){
           resolve(JSON.parse(response.body));
@@ -347,6 +346,38 @@ export class JSOnFhir {
     });
   }
 
+  /**
+  * Processes a message on the fhir server
+  * @param message A Bundle with all the properties of a message
+  * @returns the response of the server if successful
+  * @returns reject every other case with message
+  */
+  processMessage(message) {
+      if (message.resourceType !== 'Bundle' || message.type !== 'message') {
+          throw new Error('invalid parameter: resource is not a Bundle or not of type message.');
+      }
+      if (!message.entry.find(entry => entry.resource.resourceType === 'MessageHeader')) {
+          throw new Error('invalid parameter: message contains no MessageHeader resource');
+      }
+      return new Promise((resolve, reject) => {
+          apiCall({
+            url: this.urls.service + '/$process-message',
+            method: HttpMethod.POST,
+            headers: {
+              'Content-Type': 'application/fhir+json; fhirVersion=4.0'
+            },
+            jsonBody: true,
+            payload: message,
+            jsonEncoded: true
+          })
+          .then((response) => {
+              resolve(response);
+          })
+          .catch(error => {
+            reject(error);
+          });
+      });
+  }
 
   /**
   * Sets the language for the auth window

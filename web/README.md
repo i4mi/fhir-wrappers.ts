@@ -84,12 +84,12 @@ So if you want to use the *refresh token* for re-authentication, you have to per
 ```javascript
 let refreshToken;
 fhir.handleAuthResponse()
-.then(res => {
+.then (res => {
   // check if the response is not null
-  if(res){
+  if (res) {
     // we are authenticated
     // ... and can keep refreshToken
-    this.refreshToken = res.refresh_token;
+    refreshToken = res.refresh_token;
   }
 })
 .catch(err => {
@@ -119,6 +119,7 @@ logout()              |Logs out the user by deleting all the authentication info
 create(*resource*)    |Creates a new resource on the FHIR server.|*resource*: the resource to create.|A promise that: <br/>resolves with the created resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 update(*resource*)    |Updates an existing resource on the FHIR server.|*resource*: the resource to update. Note that the *resource.id* must be set and correct.|A promise that:<br/>resolves with the updated resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 search(*resourceType*, *params?*)|Searches for resources on the server.|*resourceType*: the resource type to look up.<br/>*params*: (optional) the FHIR search parameters (see [hl7.org](https://www.hl7.org/fhir/search.html) for details)|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
+processMessage(*message*)|Sends a [FHIR message](http://hl7.org/fhir/messaging.html) to the server to process.|*message*: A FHIR Bundle of type message, containing a MessageHeader resource.|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
 getPatient()          |Gets the resource ID of the current patient, if logged in.|none|The resource id of the Patient resource of the currently logged in user. `undefined` if no user is logged in.|
 setLanguage(*lang*)   |Sets the language used for the servers auth window (if supported serverside).|*lang*: The abbreviation of the wanted language (e.g. `'en'`, `'de'`, `'fr'` or `'it'`).|nothing|
 setConformanceUrl(*url*)|Manually sets the conformance URL. Only necessary if it deviates from the standard `myserver.net/fhir/metadata` scheme, as this is generated as a default.|*url*: the servers conformance URL.|nothing|
@@ -271,6 +272,7 @@ Create a new issue with the label ![][~web].
 ## 5 Changelog
 | Version | Date     | Changes      |
 | ---     | ---      | ---     |
+| 0.2.0   |2021-11-03| - Add processMessage()<br />- Fix errors in README |
 | 0.1.0   |2021-10-18| - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
 | 0.0.21  |2021-09-06| Updated some dependencies.|
 | 0.0.20  |2020-11-20| Add *getAccessToken()* method.|
