@@ -180,6 +180,8 @@ If you want to use jsOnFhir in a Vue.js project, it is recommended to declare th
 <a name="2.1-globalFhir"></a>
 ### 2.1 Make your jsOnFhir instance globally available
 This is achieved by adding a getter function for the jsOnFhir instance to the Vue prototype. Your `main.js` then should look like this:
+
+#### 2.1.1 Setting up main.js (Vue 2)
 ```javascript
 import Vue from 'vue'
 import App from './App.vue'
@@ -207,11 +209,31 @@ new Vue({
 }).$mount('#app')
 ```
 
-Since every component extends the Vue class, the getter is available and gives you access to the same jsOnFhir instance:
+#### 2.1.2 Setting up main.js (Vue 3)
+In Vue 3, setting global properties works a bit different:
+```javascript
+import { createApp } from 'vue';
+import App from './App.vue';
+
+const app = createApp(App);
+
+/* snip: insert this to your main.js */
+// import JSonFhir after installing it from npm
+import { JSOnFhir } from '@i4mi/js-on-fhir';
+// set global property
+app.config.globalProperties.$fhir = new JSOnFhir('server_url', 'client_id', 'redirect_url');
+/* snap - that's it */
+
+app.mount('#app');
+
+```
+
+#### 2.1.3 Accessing global jsOnFhir in the componente (Vue 2 and 3)
+After setting up the globally available jsOnFhir instance (see 2.1.1 or 2.1.2), it can be accessed in every component like this:
 ```javascript
 let loggedIn = this.$fhir.isLoggedIn();
 ```
- now works in every of your components, without the need to import the package or initialize a new jsOnFhir.
+This works in every of your components, without the need to import the package or initialize a new jsOnFhir instance.
 
 <a name="2.2-twoStepAuth"></a>
 ### 2.2 Handle the two-step auth process
@@ -272,6 +294,7 @@ Create a new issue with the label ![][~web].
 ## 5 Changelog
 | Version | Date     | Changes      |
 | ---     | ---      | ---     |
+| 0.2.1   |TODO| Adjusted README for usage with Vue 3. |
 | 0.2.0   |2021-11-03| - Add processMessage()<br />- Fix errors in README |
 | 0.1.0   |2021-10-18| - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
 | 0.0.21  |2021-09-06| Updated some dependencies.|
