@@ -110,7 +110,7 @@ The refresh token is only valid once, so the `refreshAuth()` method also returns
 The following table describes all the methods intended for public use.
 
 | Function            | Description                            | Params | Returns |  
-| ---                 | ---                                    | ---    |---      |
+| ---                 | ---                                    | ---    | ---     |
 |authenticate(*params?*)     |Starts the two-step authentication process (see [1.3.1](#1.3.1-authStart)).|*params*: (optional) additional params to be added to the auth URL, as key/value object.  |nothing<br/>(but redirects to the servers auth page) |
 |handleAuthResponse()|Handles the callback by the auth server. Has to be called when loading the page by the *redirect_url* (see [1.2.1](#1.2.1-constructor)). The returned auth token is handled by the plugin and does not require further action.|none|A promise that resolves to <br/>a) the servers response when in the auth process and the request was successful (HTTP status 200 / 201)<br/>b) null when not in the auth process or <br/>c) rejects with an error message when in the auth process and an error occurred|
 refreshAuth(*rToken*)  |Refreshes the authentication with a refresh token. The returned auth token is handled by the plugin and does not require further action.| *rToken*: a refresh token that was saved from an earlier servers auth response.|A promise that <br/>resolves to the servers response (including a new refresh token) or <br/>rejects with an error message.|
@@ -119,7 +119,8 @@ logout()              |Logs out the user by deleting all the authentication info
 create(*resource*)    |Creates a new resource on the FHIR server.|*resource*: the resource to create.|A promise that: <br/>resolves with the created resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 update(*resource*)    |Updates an existing resource on the FHIR server.|*resource*: the resource to update. Note that the *resource.id* must be set and correct.|A promise that:<br/>resolves with the updated resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 search(*resourceType*, *params?*)|Searches for resources on the server.|*resourceType*: the resource type to look up.<br/>*params*: (optional) the FHIR search parameters (see [hl7.org](https://www.hl7.org/fhir/search.html) for details)|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
-processMessage(*message*, *endpoint?*)|Sends a [FHIR message](http://hl7.org/fhir/messaging.html) to the server to process.|*message*: A FHIR Bundle of type message, containing a MessageHeader resource.<br />*endpoint* The endpoint to be used for processing the message. Optional parameter, default ist `/$process-message`.|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
+processMessage(*message*)|Deprecated in 0.2.1.<br /> Use *performOperation()* with `operation: 'process-message'` instead.<br />Sends a [FHIR message](http://hl7.org/fhir/messaging.html) to the server to process.|*message*: A FHIR Bundle of type message, containing a MessageHeader resource.<br />|A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
+performOperation(*operation*, *payload?*, *httpMethod?*, *params*?, *resourceType?*, *resourceId?*)| Performs a [FHIR Operation](https://www.hl7.org/fhir/operations.html), as for example processing a FHIR Message, on the server.|*operation*: The operation type to perform, without leading $ sign (use `process-message`, not `$process-message`).<br />*payload* (optional): Input payload for the operation<br />*httpMethod* (optional): Specify the HTTP method for the operation (`GET`, `POST`, `PUT` or `DELETE`, default is `POST`.)<br />*params* (optional): Parameter for the operation, either as a key/value pair object (like `{id: 'a1b2c3'}`) or as a string of url parameters (like `?id=a1b2c3`)<br /> *resourceType* (optional): String indicating the resource type to perform the operation on (e.g. `Observation`).<br />*resourceId* (optional): Use resource ID (e.g. `s`) to specify the resource instance to perform the operation on. Can only be used in combination with a *resourceType*. | A promise that:<br/>a) resolves to the servers response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message. |
 getPatient()          |Gets the resource ID of the current patient, if logged in.|none|The resource id of the Patient resource of the currently logged in user. `undefined` if no user is logged in.|
 setLanguage(*lang*)   |Sets the language used for the servers auth window (if supported serverside).|*lang*: The abbreviation of the wanted language (e.g. `'en'`, `'de'`, `'fr'` or `'it'`).|nothing|
 setConformanceUrl(*url*)|Manually sets the conformance URL. Only necessary if it deviates from the standard `myserver.net/fhir/metadata` scheme, as this is generated as a default.|*url*: the servers conformance URL.|nothing|
@@ -292,27 +293,27 @@ Go to the global repo issue site on [GitHub](https://github.com/i4mi/fhir-wrappe
 Create a new issue with the label ![][~web].
 
 ## 5 Changelog
-| Version | Date     | Changes      |
-| ---     | ---      | ---     |
-| 0.2.1   |TODO| - Add optional endpoint parameter for processMessage() <br />- Adjusted README for usage with Vue 3. |
-| 0.2.0   |2021-11-03| - Add processMessage()<br />- Fix errors in README |
-| 0.1.0   |2021-10-18| - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
-| 0.0.21  |2021-09-06| Updated some dependencies.|
-| 0.0.20  |2020-11-20| Add *getAccessToken()* method.|
-| 0.0.19  |2020-11-03| Logout when server responds with 401 or invalid / expired token.|
-| 0.0.18  |2020-07-06| Update README and make params in *search()* optional.|
-| 0.0.17  |2020-07-02| Enable additional (optional) parameters on authenticate().|
-| 0.0.16  |2020-06-12| Make *fetchConformanceStatement()* public.|
-| 0.0.15  |2020-06-11| Make *generateRandomState()* function public and let it return the state.|
-| 0.0.14  |2020-06-09| Bugfix.|
-| 0.0.13  |2020-06-03| Fix a bug where Webapps with '#' in URL could not authentificate.|
-| 0.0.12  |2020-06-03| - Update dependencies<br />- Add *getPatient()* method.|
-| 0.0.11  |2019-12-02| Update README with License and FHIR trademark remarks.|
-| 0.0.9   |2019-11-22| Fix broxen *setLanguage()* method.|
-| 0.0.6   |2019-09-20| Update dependencies and bugfix.|
-| 0.0.5   |2019-09-10| Add demo app to and fix README.|
-| 0.0.4   |2019-09-09| Cleanup and adjust README.|
-| 0.0.1   |2019-08-29| Initial version.|
+| Version | Date       | Changes      |
+| ---     | ---        | ---          |
+| 0.2.1   | 2021-11-10 | - Add performOperation()<br />- Adjusted README for usage with Vue 3.|
+| 0.2.0   | 2021-11-03 | - Add processMessage()<br />- Fix errors in README |
+| 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
+| 0.0.21  | 2021-09-06 | Updated some dependencies.|
+| 0.0.20  | 2020-11-20 | Add *getAccessToken()* method.|
+| 0.0.19  | 2020-11-03 | Logout when server responds with 401 or invalid / expired token.|
+| 0.0.18  | 2020-07-06 | Update README and make params in *search()* optional.|
+| 0.0.17  | 2020-07-02 | Enable additional (optional) parameters on authenticate().|
+| 0.0.16  | 2020-06-12 | Make *fetchConformanceStatement()* public.|
+| 0.0.15  | 2020-06-11 | Make *generateRandomState()* function public and let it return the state.|
+| 0.0.14  | 2020-06-09 | Bugfix.|
+| 0.0.13  | 2020-06-03 | Fix a bug where Webapps with '#' in URL could not authentificate.|
+| 0.0.12  | 2020-06-03 | - Update dependencies<br />- Add *getPatient()* method.|
+| 0.0.11  | 2019-12-02 | Update README with License and FHIR trademark remarks.|
+| 0.0.9   | 2019-11-22 | Fix broxen *setLanguage()* method.|
+| 0.0.6   | 2019-09-20 | Update dependencies and bugfix.|
+| 0.0.5   | 2019-09-10 | Add demo app to and fix README.|
+| 0.0.4   | 2019-09-09 | Cleanup and adjust README.|
+| 0.0.1   | 2019-08-29 | Initial version.|
 
 -----
 FHIR® is the registered trademark of HL7 and is used with the permission of HL7. Use of the FHIR trademark does not constitute endorsement of this product by HL7.

@@ -351,34 +351,75 @@ export class JSOnFhir {
   * @param message A Bundle with all the properties of a message
   * @returns the response of the server if successful
   * @returns reject every other case with message
+  * @deprecated use processOperation instead
   */
-  processMessage(message, endpoint?) {
-      endpoint = endpoint || '/$process-message'
+  processMessage(message) {
       if (message.resourceType !== 'Bundle' || message.type !== 'message') {
           throw new Error('invalid parameter: resource is not a Bundle or not of type message.');
       }
       if (!message.entry.find(entry => entry.resource.resourceType === 'MessageHeader')) {
           throw new Error('invalid parameter: message contains no MessageHeader resource');
       }
-      return new Promise((resolve, reject) => {
-          apiCall({
-            url: this.urls.service + endpoint,
-            method: HttpMethod.POST,
-            headers: {
-              'Content-Type': 'application/fhir+json; fhirVersion=4.0'
-            },
-            jsonBody: true,
-            payload: message,
-            jsonEncoded: true
-          })
-          .then((response) => {
-              resolve(response);
-          })
-          .catch(error => {
-            reject(error);
-          });
-      });
+      return this.performOperation('process-message', message);
   }
+
+
+  /**
+  * Performs a given operation on the server.
+  * @param operation the type of the operation, for example process-message
+  * @param payload a Resource or other payload to process in the operation (optional)
+  * @param httpMethod the HTTP method to use (GET|POST|PUT|DELETE) (optional)
+  * @param params parameters, either as key/value pair or as a string (optional)
+  * @param resourceType specify the type of Resources the operation should be performed on (optional, mandatory when using resourceId)
+  * @param resourceId specify an instance of a Resource the operation should be performed on (optional)
+  * @returns the response of the server if successful
+  * @returns reject every other case with message
+  */
+  performOperation(operation: string, payload?: any, httpMethod: HttpMethod = HttpMethod.POST, params?: any, resourceType?: string, resourceId?: string) {
+    if (resourceId && !resourceType) {
+        throw new Error('invalid parameters: resourceInstance provided, but no resourceType')
+    }
+    let paramUrl = ''
+    if (params) {
+        paramUrl += '?';
+        if (typeof params === 'string') {
+            paramUrl += encodeURI(params);
+        }
+        else {
+            Object.keys(params).forEach((key, index) => {
+                paramUrl += (index === 0)
+                    ? (key + "=" + encodeURI(params[key]))
+                    : '&' + (key + "=" + encodeURI(params[key]));
+            });
+        }
+    }
+    resourceType = resourceType
+                            ? '/' + resourceType
+                            : '';
+        resourceId = resourceId
+                            ? '/' + resourceId
+                            : '';
+    return new Promise((resolve, reject) => {
+      apiCall({
+        url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
+        method: httpMethod,
+        headers: {
+          'Content-Type': 'application/fhir+json; fhirVersion=4.0'
+        },
+        jsonBody: true,
+        payload: payload,
+        jsonEncoded: typeof payload != 'string'
+      })
+      .then((response) => {
+          resolve(response);
+      })
+      .catch(error => {
+        reject(error);
+      });
+    });
+  }
+
+
 
   /**
   * Sets the language for the auth window
@@ -419,13 +460,13 @@ export class JSOnFhir {
   /**
   * Returns the resource id of the Patient resource of the logged in user
   * @return the Patient Resource ID as a string, if logged in
-  *         undefined if not logged in
+  * @return undefined if not logged in
   */
   getPatient() {
     if(this.settings.patient && this.settings.patient != ''){
-        return this.settings.patient;
+      return this.settings.patient;
     } else {
-        return undefined;
+      return undefined;
     }
   }
 
