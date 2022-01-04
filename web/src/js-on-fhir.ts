@@ -35,18 +35,30 @@ export class JSOnFhir {
   /**
    * Creates a new JSOnFhir object and persists it in the sessionStorage so that is
    * still available after a page reload.
-   * @param serverUrl         The URL of the fhir server, e.g. 'https://test.midata.coop'.
-   * @param clientId          The id of your fhir application.
-   * @param redirectUrl       The URL where the callback of the OAuth 2.0 can be directed.
-   * @param doesNotNeedAuth?  Optional parameter. Set to true when the FHIR server you're
-   *                          using doesn't require authentification (e.g. when connecting to
-   *                          the EPD playground via MobileAccessGateway). In this case, the
-   *                          parameters clientId and redirectUrl do not matter (but still
-   *                          have to be set.)
-   * @param disablePkce?      Optional parameter. Set to true if you wan't to use the OAuth 2.0
-   *                          authorization code flow instead of the recommended and more secure PKCE flow.
+   * @param serverUrl                 The URL of the fhir server, e.g. 'https://test.midata.coop'.
+   * @param clientId                  The ID of your fhir application as registered with the fhir server.
+   * @param redirectUrl               The URL where the callback of the OAuth 2.0 can be directed.
+   * @param options?                  Optional parameter. Options object literal.
+   * @param options.doesNotNeedAuth?  Optional parameter. Set to true when the FHIR server you're
+   *                                  using doesn't require authentication (e.g. when connecting to
+   *                                  the EPD playground via MobileAccessGateway). In this case, the
+   *                                  parameters clientId and redirectUrl do not matter (but still
+   *                                  have to be set.)
+   * @param options.disablePkce?      Optional parameter. Set to true if you want to use the OAuth 2.0
+   *                                  authorization code flow instead of the recommended and more secure PKCE flow
+   *                                  or the server does not support PKCE.
    */
-  constructor(serverUrl: string, clientId: string, redirectUrl: string, doesNotNeedAuth?: boolean, disablePkce?: boolean) {
+  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean }) {
+    if (!options) {
+      options = { doesNotNeedAuth: false, disablePkce: false };
+    } else if (options) {
+      if (typeof options.doesNotNeedAuth === 'undefined') {
+        options.doesNotNeedAuth = false;
+      }
+      if (typeof options.disablePkce === 'undefined') {
+        options.disablePkce = false;
+      }
+    }
     // Check if there is a jsOnFhir object in sessionStorage.
     const persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
     if (persisted != null) {
@@ -65,8 +77,8 @@ export class JSOnFhir {
     this.urls.redirect = redirectUrl;
     this.settings.client = clientId;
     this.settings.scope = 'user/*.*';
-    this.settings.noAuth = doesNotNeedAuth ? doesNotNeedAuth : false;
-    this.settings.noPkce = disablePkce ? disablePkce : false;
+    this.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
+    this.settings.noPkce = options.disablePkce ? options.disablePkce : false;
     this.persistMe();
   }
 
@@ -74,21 +86,20 @@ export class JSOnFhir {
    * This function starts the OAuth 2.0 authentication procedure, by opening the auth
    * page for the client to enter his login credentials. Default OAuth 2.0 PKCE grant type is used.
    * @param params? Optional parameter. An object with key/value pairs.
-   *                an be used to control the login process or may be used
+   *                Can be used to control the login process or may be used
    *                to pre-fill the login or registration form.
-   * @returns A promise:
-   *            - fulfilled: Response of the token endpoint.
-   *            - rejected:  Error message.
    */
   authenticate(params?: unknown) {
-    if (this.settings.noAuth) return;
+    if (this.settings.noAuth) {
+      return;
+    }
     // If PKCE isn't disabled, creates a code verifier and code challenge
     // based on the former according to rfc7636 section 4.1.
     if (!this.settings.noPkce) {
       this.settings.codeVerifier = this.generateCodeVerifier();
       this.settings.codeChallenge = this.generateCodeChallenge(this.settings.codeVerifier);
     }
-    // Creates a opaque value used by the client to maintain state between the request and callback.
+    // Creates an opaque value used by the client to maintain state between the request and callback.
     this.settings.state = this.generateState();
     // Fetching of the auth and token URL.
     this.fetchConformanceStatement()
@@ -111,21 +122,20 @@ export class JSOnFhir {
           authUrl += '&code_challenge=' + this.settings.codeChallenge + '&code_challenge_method=S256';
         }
         // If language exists and is set in settings property, sets the language to be used on the login page.
-        if (this.settings.language.length == 2) {
-          authUrl += '&language=' + this.settings.language;
+        if (this.settings.language.length === 2) {
+          authUrl += '&language=' + encodeURIComponent(this.settings.language);
         }
         // Append parameter(s) if they exist.
         if (params) {
           Object.keys(params).forEach((key) => {
-            authUrl += '&' + key + '=' + params[key].toString();
+            authUrl += '&' + key + '=' + encodeURIComponent(params[key].toString());
           });
         }
-        // Make authorization request with parameters and go to authorization (login) page.
+        // Go to authorization (login) page to make an authorization request.
         window.location.href = authUrl;
       })
       .catch((error) => {
-        console.error(error);
-        throw error;
+        throw new Error(error.status + ' ' + error.message);
       });
   }
 
@@ -136,13 +146,13 @@ export class JSOnFhir {
    * This function then makes an authorization request to the token endpoint as described in
    * rfc6749 section 4.1.3.
    * @returns A promise when called after authenticate():
-   *            - fulfilled:  Response of token endpoint
-   *            - rejected:   An error message
+   *            - fulfilled:  Response of token endpoint.
+   *            - rejected:   An error message.
    */
-  handleAuthResponse() {
+  handleAuthResponse(): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      // When the URL has #, window.location.search is empty and we have to parse windows.location.hash.
-      const paramString = window.location.search.length > 0 ? window.location.search : '?' + window.location.hash.split('?')[1];
+      // When the URL has #, window.location.search is empty, and we have to parse windows.location.hash.
+      let paramString = window.location.search.length > 0 ? window.location.search : '?' + window.location.hash.split('?')[1];
       // Check whether paramString includes state and authorization code parameters.
       if (paramString.includes('state=') && paramString.includes('code=')) {
         // Create array containing [state=abc,code=xyz]
@@ -151,18 +161,25 @@ export class JSOnFhir {
         let state: string, authCode: string;
         urlParams.forEach((entry) => {
           const param = entry.split('=');
-          if (param[0] === 'state') state = decodeURIComponent(param[1].replace(/\+/g, '%20'));
-          if (param[0] === 'code') authCode = decodeURIComponent(param[1].replace(/\+/g, '%20'));
+          if (param[0] === 'state') {
+            state = decodeURIComponent(param[1].replace(/\+/g, '%20'));
+          }
+          if (param[0] === 'code') {
+            authCode = decodeURIComponent(param[1].replace(/\+/g, '%20'));
+          }
         });
-        // Request a AccesToken and RefreshToken from the token endpoint.
+        // Request an access and refresh token from the token endpoint.
         this.tokenRequest(state, authCode)
           .then((response) => {
+            // Resets the URL so that we don't run into misinterpreting the same code later again.
+            history.pushState({}, null, this.urls.redirect);
             resolve(response);
           })
           .catch((error) => {
-            console.error(error);
-            reject(error);
+            reject(new Error(error.status + ' ' + error.message));
           });
+      } else {
+        resolve(null);
       }
     });
   }
@@ -170,7 +187,7 @@ export class JSOnFhir {
   /**
    * Given the prerequisite that the local state and server response state are the same
    * and therefore no cross-site request forgery attack is being performed, this function
-   * makes a request to the token endpoint as described in rfc6749 section 4.1.3, or if PKCE isn't disbaled
+   * makes a request to the token endpoint as described in rfc6749 section 4.1.3, or if PKCE isn't disabled
    * as described in rfc7636 section 4.5.
    * The token endpoints response is then handled by the handleTokenResponse() function.
    * @param state     An opaque value used by the client to maintain state between the request and callback.
@@ -179,9 +196,9 @@ export class JSOnFhir {
    *            - fulfilled: Response of the token endpoint.
    *            - rejected:  Error message.
    */
-  private tokenRequest(state: string, authCode: string) {
+  private tokenRequest(state: string, authCode: string): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      // Check if local state and server response state are the same.
+      // Check if local state and the server's response state are the same.
       if (this.settings.state === state) {
         let data =
           'grant_type=authorization_code' +
@@ -192,7 +209,9 @@ export class JSOnFhir {
           '&code=' +
           authCode;
         // If PKCE isn't disabled, append the code verifier to the data string.
-        if (!this.settings.noPkce) data += '&code_verifier=' + this.settings.codeVerifier;
+        if (!this.settings.noPkce) {
+          data += '&code_verifier=' + this.settings.codeVerifier;
+        }
         // Make request to the token endpoint using apiCall function from @i4mi/fhir_r4.
         apiCall({
           url: this.urls.token,
@@ -204,42 +223,37 @@ export class JSOnFhir {
           payload: data,
           jsonEncoded: false,
         }).then((response) => {
-          return new Promise((resolve, reject) => {
-            if (response.status === 200) {
-              // Handle the response of the token endpoint.
-              this.handleTokenResponse(response);
-              resolve(response);
-            } else {
-              reject('Error: ' + response.status + ' ' + response.message);
-            }
-          })
-            .catch((error) => {
-              console.error(error);
-              reject(error);
-            })
-            .then((response) => {
-              resolve(response);
-            });
+          if (response.status === 200) {
+            // Handle the response of the token endpoint.
+            this.handleTokenResponse(response);
+            resolve(response.body);
+          } else {
+            reject(new Error(response.status + ' ' + response.message));
+          }
         });
       } else {
-        reject('Error: Server response state and local state mismatch.');
+        reject(new Error('Server response state and local state mismatch.'));
       }
     });
   }
 
   /**
-   * Refreshes an access token, given that the client is in possession of an refresh token
-   * issued by the authorization server. The token endpoints response is then handled by
+   * Refreshes an access token, given that the client is in possession of a refresh token
+   * issued by the authorization server. The token endpoint's response is then handled by
    * the handleTokenResponse() function.
    * @returns A promise:
-   *            - fulfilled: Response from token endpoint or empty promise if server doesn't require authentification.
+   *            - fulfilled: Response from token endpoint or empty promise if server doesn't require authentication.
    *            - rejected:  Error message.
    */
-  refreshAuth() {
-    new Promise((resolve, reject) => {
-      if (this.settings.noAuth) resolve(null);
-      if (this.auth.refreshToken && this.auth.refreshToken.length > 0) {
-        // Make request to token endpoint.
+  refreshAuth(refreshToken: string): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      // Resolve promise if doesNotNeedAuth? was set to true in the constructor.
+      if (this.settings.noAuth) {
+        Promise.resolve();
+      }
+      // Check that the provided refreshToken is valid.
+      if (refreshToken && refreshToken !== '') {
+        // Make request to the token endpoint.
         apiCall({
           url: this.urls.token,
           method: HttpMethod.POST,
@@ -250,25 +264,16 @@ export class JSOnFhir {
           payload: 'grant_type=refresh_token&refresh_token=' + this.auth.refreshToken,
           jsonEncoded: false,
         }).then((response) => {
-          return new Promise((resolve, reject) => {
-            if (response.status === 200) {
-              // Handle the response of the token endpoint.
-              this.handleTokenResponse(response);
-              resolve(response);
-            } else {
-              reject('Error: ' + response.status + ' ' + response.message);
-            }
-          })
-            .catch((error) => {
-              console.error(error);
-              reject(error);
-            })
-            .then((response) => {
-              resolve(response);
-            });
+          if (response.status === 200) {
+            // Handle the response of the token endpoint.
+            this.handleTokenResponse(response);
+            resolve(response.body);
+          } else {
+            reject(new Error(response.status + ' ' + response.message));
+          }
         });
       } else {
-        reject('Error: Invalid refresh token.');
+        reject(new Error('Invalid refresh token.'));
       }
     });
   }
@@ -294,7 +299,6 @@ export class JSOnFhir {
       codeVerifier: '',
       codeChallenge: '',
       state: '',
-      scope: '',
     };
     this.auth = {
       accessToken: '',
@@ -306,11 +310,10 @@ export class JSOnFhir {
   }
 
   /**
-   * Helper function to create a ApiConfig object.
-   * The object consists of the access token, authorization type and the base URL.
+   * Helper function to get a ApiConfig object consisting of the access token, authorization type and the base URL.
    * @returns ApiConfig object.
    */
-  private createConfig(): ApiConfig {
+  private getApiConfig(): ApiConfig {
     return {
       access_token: this.auth.accessToken,
       authorization_type: this.auth.type,
@@ -325,21 +328,21 @@ export class JSOnFhir {
    *            - fulfilled:  Representation of fhir resource in JSON format.
    *            - rejected:   Error message.
    */
-  create(resource) {
+  create(resource): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      // Reject promise if user is not logged in or if doesNotNeedAuth? is set to true in constructor.
-      if (!this.isLoggedIn() || this.settings.noAuth) reject('Error: User not logged in.');
-      // Create config
-      const config = this.createConfig();
-      // Create resource on the fhir server by calling the create() function of apiMethods.
+      // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
+      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+        reject(new Error('User not logged in.'));
+      }
+      // Create a resource on the fhir server by calling the create() function of apiMethods.
       this.apiMethods
-        .create(resource, config)
+        .create(resource, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
-          reject(error);
+          reject(new Error(error.status + ' ' + error.message));
         });
     });
   }
@@ -351,23 +354,25 @@ export class JSOnFhir {
    *            - fulfilled:  Representation of fhir resource in JSON format.
    *            - rejected:   Error message.
    */
-  update(resource) {
+  update(resource): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      // Reject promise if resource id is undefined.
-      if (typeof resource.id === 'undefined' && typeof resource._id === 'undefined') reject('Error: Resource has no id.');
-      // Reject promise if user is not logged in or if doesNotNeedAuth? is set to true in constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) reject('Error: User not logged in.');
-      // Create config.
-      const config = this.createConfig();
+      // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
+      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+        reject(new Error('User not logged in.'));
+      }
+      // Reject promise if resource ID is undefined.
+      if (typeof resource.id === 'undefined' && typeof resource._id === 'undefined') {
+        reject(new Error('Resource has no id.'));
+      }
       // Update resource on the fhir server by calling the update() function of apiMethods.
       this.apiMethods
-        .update(resource, config)
+        .update(resource, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
-          reject(error);
+          reject(new Error(error.status + ' ' + error.message));
         });
     });
   }
@@ -380,38 +385,22 @@ export class JSOnFhir {
    *            - fulfilled:  Bundle of type searchset containing the fhir resource(s).
    *            - rejected:   Error message.
    */
-  search(resourceType, params?) {
+  search(resourceType, params?): Promise<unknown> {
     return new Promise((resolve, reject) => {
-      // Reject promise if user is not logged in or if doesNotNeedAuth? is set to true in constructor.
-      if (!this.isLoggedIn() || this.settings.noAuth) reject('Error: User not logged in.');
-      // Create config.
-      const config = this.createConfig();
+      // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
+      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+        reject(new Error('User not logged in.'));
+      }
       // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
       this.apiMethods
-        .search(params, resourceType, config)
+        .search(params, resourceType, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
-          reject(error);
+          reject(new Error(error.status + ' ' + error.message));
         });
-    });
-  }
-
-  /**
-   * DEPRECATED: Processes a message on the fhir server.
-   * @param message A bundle with all the properties of a message.
-   * @returns A promise:
-   *            - fulfilled:  Response of the fhir server.
-   *            - rejected:   Error message.
-   * @deprecated Use processOperation() function instead.
-   */
-  processMessage(message) {
-    return new Promise((resolve, reject) => {
-      if (message.resourceType !== 'Bundle' || message.type !== 'message') reject('Error');
-      if (!message.entry.find((entry) => entry.resource.resourceType === 'MessageHeader')) reject('Error');
-      resolve(this.performOperation('process-message', message));
     });
   }
 
@@ -419,9 +408,9 @@ export class JSOnFhir {
    * Performs a given operation on the fhir server.
    * @param operation       The type of the operation (e.g 'process-message').
    * @param payload?        Optional Parameter. A resource or other payload to process in the operation.
-   * @param httpMethod?     Optional Parameter. The HTTP method to be used (GET|POST|PUT|DELETE).
+   * @param httpMethod      Optional Parameter. The HTTP method to be used (GET|POST|PUT|DELETE). Default is HTTP method (POST).
    * @param params?         Optional Parameter. Parameters, either as key/value pair or as a string.
-   * @param resourceType?   Optional Parameter. Specify the resource type for which the operation is to be performed (mandatory if resourceId is used).
+   * @param resourceType?   Optional Parameter. Specify the resource type on which the operation is to be performed (mandatory if resourceId is used).
    * @param resourceId?     Optional Parameter. Specify an instance of a resource for which the operation is to be performed.
    * @returns A promise:
    *            - fulfilled:  Response of the fhir server.
@@ -434,10 +423,16 @@ export class JSOnFhir {
     params?: unknown,
     resourceType?: string,
     resourceId?: string
-  ) {
+  ): Promise<unknown> {
     return new Promise((resolve, reject) => {
+      // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
+      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+        reject(new Error('User not logged in.'));
+      }
       // Reject promise if resourceInstance (resourceId) but no resourceType is provided.
-      if (resourceId && !resourceType) reject('Error: Instance of resource is provided, but not the resourceType.');
+      if (resourceId && !resourceType) {
+        reject(new Error('Instance of resource is provided, but not the resourceType.'));
+      }
       // Create paramUrl.
       let paramUrl = '';
       // Append parameters from key/value pairs or from a string.
@@ -451,10 +446,10 @@ export class JSOnFhir {
           });
         }
       }
-      // Set '/' prefix to resourceType and resourceId if they exist. If they don't exist set them both to ''.
+      // Set '/' prefix to resourceType and resourceId if they exist. If they don't exist, set them both to ''.
       resourceType = resourceType ? '/' + resourceType : '';
       resourceId = resourceId ? '/' + resourceId : '';
-      // Perform Operation on fhir server by using apiCall function from @i4mi/fhir_r4.
+      // Perform operation on fhir server by using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
         method: httpMethod,
@@ -469,7 +464,7 @@ export class JSOnFhir {
           resolve(response);
         })
         .catch((error) => {
-          reject(error);
+          reject(new Error(error.status + ' ' + error.message));
         });
     });
   }
@@ -483,12 +478,12 @@ export class JSOnFhir {
       this.settings.language = lang.toLowerCase();
       this.persistMe();
     } else {
-      throw 'Error: The supplied language code is not a two-char string.';
+      throw new Error('The supplied language code is not a two-char string.');
     }
   }
 
   /**
-   * Sets the conformance URL, if it differs from the default '/fhir/metadata'.
+   * Sets the conformance URL, if it differs from the default (serverURL + '/fhir/metadata').
    * @param conformanceUrl The new conformance statement URL.
    */
   setConformanceUrl(conformanceUrl: string) {
@@ -497,29 +492,25 @@ export class JSOnFhir {
   }
 
   /**
-   * Sets the scope, if it differs from the default 'user/*.*'.
-   * @param scope the scope as string
+   * Sets the scope when it differs from the default 'user/*.*'.
+   * @param scope The scope as string.
    */
   setScope(scope: string) {
-    this.settings.scope = '';
+    this.settings.scope = scope;
     this.persistMe();
   }
 
   /**
-   * Returns the resource id of the Patient resource of the logged in user
-   * @return the Patient Resource ID as a string, if logged in
-   * @return undefined if not logged in
+   * Returns the resource ID of the patient resource of the logged-in user.
+   * @returns The ID of the patient resource as a string if patient is logged in,
+   *          or undefined if patient is not logged in.
    */
   getPatient() {
-    if (this.settings.patient && this.settings.patient != '') {
-      return this.settings.patient;
-    } else {
-      return undefined;
-    }
+    return this.settings.patient && this.settings.patient != '' ? this.settings.patient : undefined;
   }
 
   /**
-   * Creates a opaque value used by the client to maintain state
+   * Creates an opaque value used by the client to maintain state
    * between the request and callback. Is used for preventing
    * cross-site request forgery according to rfc 6749 section 4.1.1.
    * @returns state (url-safe) with a length of 128 characters.
@@ -566,26 +557,16 @@ export class JSOnFhir {
         method: HttpMethod.GET,
       })
         .then((response) => {
-          new Promise((resolve, reject) => {
-            if (response.status === 200) {
-              // Handle the response of the conformance statement request.
-              this.handleConformanceStatementResponse(response);
-              resolve(response);
-            } else {
-              reject('Error: ' + response.status + ' ' + response.message);
-            }
-          })
-            .catch((error) => {
-              console.error(error);
-              reject(error);
-            })
-            .then((response) => {
-              resolve(response);
-            });
+          if (response.status === 200) {
+            // Handle the response of the conformance statement request.
+            this.handleConformanceStatementResponse(response);
+            resolve(response);
+          } else {
+            reject(new Error(response.status + ' ' + response.message));
+          }
         })
         .catch((error) => {
-          console.error(error);
-          reject(error);
+          reject(new Error(error.status + ' ' + error.message));
         });
     });
   }
@@ -636,6 +617,8 @@ export class JSOnFhir {
    * @param error Error object.
    */
   private handleError(error) {
-    if (error.body === 'Invalid token' || error.body === 'Expired token' || error.status === 401) this.logout();
+    if (error.body === 'Invalid token' || error.body === 'Expired token' || error.status === 401) {
+      this.logout();
+    }
   }
 }
