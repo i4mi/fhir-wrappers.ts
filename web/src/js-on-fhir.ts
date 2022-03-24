@@ -1,7 +1,24 @@
-import { apiCall, HttpMethod, ApiMethods, ApiConfig } from '@i4mi/fhir_r4';
+import { apiCall, HttpMethod, ApiMethods, ApiConfig, ApiCallResponse, Resource, Bundle } from '@i4mi/fhir_r4';
 import sha256 from 'crypto-js/sha256';
 import Base64 from 'crypto-js/enc-base64';
 import cryptoRandomString from 'crypto-random-string';
+
+
+/**
+ * A response to successful oauth request
+ * ACCORDING http://www.hl7.org/fhir/smart-app-launch/index.html
+ */
+export interface AuthResponse {
+    state: string; // if everyting ok --> none
+    access_token: string; // The access token issued by the authorization server
+    token_type: 'Bearer'; // Fixed value: Bearer
+    expires_in: number; // Lifetime in seconds of the access token, after which the token SHALL NOT be accepted by the resource server
+    scope: string; // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
+    id_token?: string; // Authenticated patient identity and user details, if requested
+    patient: string; // field name for user id defined by SMART on FHIR
+    refresh_token: string; // Token that can be used to obtain a new access token,
+    // using the same or a subset of the original authorization grants
+}
 
 export class JSOnFhir {
   private apiMethods = new ApiMethods();
@@ -18,7 +35,8 @@ export class JSOnFhir {
     scope: '',
     state: '',
     language: '',
-    fhirVersion: '',
+    supportedResourceTypes: new Array<string>(),
+    fhirVersion: '4.0.1',
     responseType: 'code',
     noAuth: false,
     noPkce: false,
@@ -47,10 +65,11 @@ export class JSOnFhir {
    * @param options.disablePkce?      Optional parameter. Set to true if you want to use the OAuth 2.0
    *                                  authorization code flow instead of the recommended and more secure PKCE flow
    *                                  or the server does not support PKCE.
+   * @param options.fhirVersion?      Set FHIR version to use. Defaults to 4.0.1.
    */
-  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean }) {
+  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: string }) {
     if (!options) {
-      options = { doesNotNeedAuth: false, disablePkce: false };
+      options = { doesNotNeedAuth: false, disablePkce: false, fhirVersion: '4.0.1' };
     } else if (options) {
       if (typeof options.doesNotNeedAuth === 'undefined') {
         options.doesNotNeedAuth = false;
@@ -79,6 +98,7 @@ export class JSOnFhir {
     this.settings.scope = 'user/*.*';
     this.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
     this.settings.noPkce = options.disablePkce ? options.disablePkce : false;
+    this.settings.fhirVersion = options.fhirVersion ? options.fhirVersion : '4.0.1';
     this.persistMe();
   }
 
@@ -88,8 +108,10 @@ export class JSOnFhir {
    * @param params? Optional parameter. An object with key/value pairs.
    *                Can be used to control the login process or may be used
    *                to pre-fill the login or registration form.
+   * @returns       nothing
+   * @throws        An Error if the conformance statement could not be fetched from the server.
    */
-  authenticate(params?: unknown) {
+  authenticate(params?: {[key: string]: string}): void {
     if (this.settings.noAuth) {
       return;
     }
@@ -149,7 +171,7 @@ export class JSOnFhir {
    *            - fulfilled:  Response of token endpoint.
    *            - rejected:   An error message.
    */
-  handleAuthResponse(): Promise<unknown> {
+  handleAuthResponse(): Promise<AuthResponse | null> {
     return new Promise((resolve, reject) => {
       // When the URL has #, window.location.search is empty, and we have to parse windows.location.hash.
       let paramString = window.location.search.length > 0 ? window.location.search : '?' + window.location.hash.split('?')[1];
@@ -170,7 +192,7 @@ export class JSOnFhir {
         });
         // Request an access and refresh token from the token endpoint.
         this.tokenRequest(state, authCode)
-          .then((response) => {
+          .then((response: AuthResponse) => {
             // Resets the URL so that we don't run into misinterpreting the same code later again.
             history.pushState({}, null, this.urls.redirect);
             resolve(response);
@@ -196,7 +218,7 @@ export class JSOnFhir {
    *            - fulfilled: Response of the token endpoint.
    *            - rejected:  Error message.
    */
-  private tokenRequest(state: string, authCode: string): Promise<unknown> {
+  private tokenRequest(state: string, authCode: string): Promise<AuthResponse> {
     return new Promise((resolve, reject) => {
       // Check if local state and the server's response state are the same.
       if (this.settings.state === state) {
@@ -245,7 +267,7 @@ export class JSOnFhir {
    *            - fulfilled: Response from token endpoint or empty promise if server doesn't require authentication.
    *            - rejected:  Error message.
    */
-  refreshAuth(refreshToken: string): Promise<unknown> {
+  refreshAuth(refreshToken: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // Resolve promise if doesNotNeedAuth? was set to true in the constructor.
       if (this.settings.noAuth) {
@@ -263,7 +285,7 @@ export class JSOnFhir {
           jsonBody: true,
           payload: 'grant_type=refresh_token&refresh_token=' + this.auth.refreshToken,
           jsonEncoded: false,
-        }).then((response) => {
+        }).then((response: ApiCallResponse) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
             this.handleTokenResponse(response);
@@ -285,14 +307,14 @@ export class JSOnFhir {
    *            - false:  Access token is invalid. Will also return
    *                      false when doesNotNeedAuth? was set true in the constructor.
    */
-  isLoggedIn() {
+  isLoggedIn(): boolean {
     return this.auth.accessToken != '' && this.auth.expires > Date.now();
   }
 
   /**
    * Logs out the user by deleting certain settings and permission properties.
    */
-  logout() {
+  logout(): void {
     this.settings = {
       ...this.settings,
       patient: '',
@@ -328,7 +350,7 @@ export class JSOnFhir {
    *            - fulfilled:  Representation of fhir resource in JSON format.
    *            - rejected:   Error message.
    */
-  create(resource): Promise<unknown> {
+  create(resource: Resource | string): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
       if (!(this.isLoggedIn() || this.settings.noAuth)) {
@@ -339,7 +361,7 @@ export class JSOnFhir {
         .create(resource, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201
-            ? resolve(JSON.parse(response.body))
+            ? resolve(JSON.parse(response.body) as Resource)
             : reject(response);
         })
         .catch((error) => {
@@ -356,7 +378,7 @@ export class JSOnFhir {
    *            - fulfilled:  Representation of fhir resource in JSON format.
    *            - rejected:   Error message.
    */
-  update(resource): Promise<unknown> {
+  update(resource: Resource): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
       if (!(this.isLoggedIn() || this.settings.noAuth)) {
@@ -371,7 +393,7 @@ export class JSOnFhir {
         .update(resource, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201
-            ? resolve(JSON.parse(response.body))
+            ? resolve(JSON.parse(response.body) as Resource)
             : reject(response);
         })
         .catch((error) => {
@@ -382,14 +404,19 @@ export class JSOnFhir {
   }
 
   /**
-   * Searches for one specific resource or multiple resources.
+   * Searches for resources matching the given criteria in params.
    * @param resourceType  ResourceType to be searched.
    * @param params?       Optional parameter. Search parameters according to fhir resource guide.
    * @returns A promise:
    *            - fulfilled:  Bundle of type searchset containing the fhir resource(s).
    *            - rejected:   Error message.
    */
-  search(resourceType, params?): Promise<unknown> {
+  search(resourceType: string, params?: {[key: string]: string}): Promise<Bundle> {
+    if (this.settings.supportedResourceTypes.findIndex(r => r === resourceType) === -1) {
+      return Promise.reject(
+        'ResourceType "' + resourceType + '" is not supported by this server.'
+        + (resourceType.includes('/') ? ' For directly fetching a resource use getResource().' : ''));
+    }
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
       if (!(this.isLoggedIn() || this.settings.noAuth)) {
@@ -400,7 +427,36 @@ export class JSOnFhir {
         .search(params, resourceType, this.getApiConfig())
         .then((response) => {
           response.status === 200 || response.status === 201
-            ? resolve(JSON.parse(response.body))
+            ? resolve(JSON.parse(response.body) as Bundle)
+            : reject(response);
+        })
+        .catch((error) => {
+          this.handleError(error);
+          reject(new Error(error.status + ' ' + error.message));
+        });
+    });
+  }
+
+  /**
+   * Fetches a given known resource.
+   * @param resourceType  ResourceType of the resource.
+   * @param id            The unique id of the resource.
+   * @returns A promise:
+   *            - fulfilled:  Bundle of type searchset containing the fhir resource(s).
+   *            - rejected:   Error message.
+   */
+  getResource(resourceType: string, id: string): Promise<Resource> {
+    return new Promise((resolve, reject) => {
+      // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
+      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+        reject(new Error('User not logged in.'));
+      }
+      // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
+      this.apiMethods
+        .search(null, resourceType + '/' + id, this.getApiConfig())
+        .then((response) => {
+          response.status === 200 || response.status === 201
+            ? resolve(JSON.parse(response.body) as Resource)
             : reject(response);
         })
         .catch((error) => {
@@ -424,12 +480,12 @@ export class JSOnFhir {
    */
   performOperation(
     operation: string,
-    payload?: unknown,
+    payload?: Resource | string,
     httpMethod: HttpMethod = HttpMethod.POST,
-    params?: unknown,
+    params?: {[key: string]: string},
     resourceType?: string,
     resourceId?: string
-  ): Promise<unknown> {
+  ): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
       if (!(this.isLoggedIn() || this.settings.noAuth)) {
@@ -466,14 +522,16 @@ export class JSOnFhir {
         url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
         method: httpMethod,
         headers: {
-          'Content-Type': 'application/fhir+json; fhirVersion=4.0',
+          'Content-Type': 'application/fhir+json;' + ((this.settings.fhirVersion && this.settings.fhirVersion.length > 0)
+                                                        ? ' fhirVersion=' + this.settings.fhirVersion
+                                                        : '')
         },
         jsonBody: true,
         payload: payload,
         jsonEncoded: typeof payload != 'string'
       })
         .then((response) => {
-          resolve(response);
+          resolve(JSON.parse(response.body) as Resource);
         })
         .catch((error) => {
           reject(new Error(error.status + ' ' + error.message));
@@ -485,7 +543,7 @@ export class JSOnFhir {
    * Sets the language for the authorization request window.
    * @param lang The language as two-char string (eg. 'de', 'en', 'fr' or 'it').
    */
-  setLanguage(lang: string) {
+  setLanguage(lang: string): void {
     if (lang.length === 2) {
       this.settings.language = lang.toLowerCase();
       this.persistMe();
@@ -498,7 +556,7 @@ export class JSOnFhir {
    * Sets the conformance URL, if it differs from the default (serverURL + '/fhir/metadata').
    * @param conformanceUrl The new conformance statement URL.
    */
-  setConformanceUrl(conformanceUrl: string) {
+  setConformanceUrl(conformanceUrl: string): void {
     this.urls.conformance = conformanceUrl;
     this.persistMe();
   }
@@ -507,7 +565,7 @@ export class JSOnFhir {
    * Sets the scope when it differs from the default 'user/*.*'.
    * @param scope The scope as string.
    */
-  setScope(scope: string) {
+  setScope(scope: string): void {
     this.settings.scope = scope;
     this.persistMe();
   }
@@ -517,7 +575,7 @@ export class JSOnFhir {
    * @returns The ID of the patient resource as a string if patient is logged in,
    *          or undefined if patient is not logged in.
    */
-  getPatient() {
+  getPatient(): string {
     return this.settings.patient && this.settings.patient != ''
             ? this.settings.patient
             : undefined;
@@ -529,7 +587,7 @@ export class JSOnFhir {
    * cross-site request forgery according to rfc 6749 section 4.1.1.
    * @returns state (url-safe) with a length of 128 characters.
    */
-  private generateState() {
+  private generateState(): string {
     return cryptoRandomString({ length: 128, type: 'url-safe' });
   }
 
@@ -540,7 +598,7 @@ export class JSOnFhir {
    * with a minimum length of 43 characters and a maximum length of 128 characters.
    * @returns code verifier (url-safe) with a length of 128 characters.
    */
-  private generateCodeVerifier() {
+  private generateCodeVerifier(): string {
     return cryptoRandomString({ length: 128, type: 'url-safe' });
   }
 
@@ -550,7 +608,7 @@ export class JSOnFhir {
    * @param codeVerifier high-entropy cryptographic URL safe random string using the unreserved characters from rfc3986 section 2.3.
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
-  private generateCodeChallenge(codeVerifier: string) {
+  private generateCodeChallenge(codeVerifier: string): string {
     return Base64.stringify(sha256(codeVerifier))
                  .replace(/\+/g, '-')
                  .replace(/\//g, '_')
@@ -564,13 +622,18 @@ export class JSOnFhir {
    *            - fulfilled: Response of the conformance statement request.
    *            - rejected:  Error message.
    */
-  private fetchConformanceStatement(): Promise<unknown> {
+  private fetchConformanceStatement(): Promise<ApiCallResponse> {
     return new Promise((resolve, reject) => {
       // Set the conformance endpoint URL.
       const cfUrl = typeof this.urls.conformance !== 'undefined' ? this.urls.conformance : this.urls.service + '/metadata';
       // Make request to the conformance endpoint using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: cfUrl,
+        headers: {
+          'Content-Type': 'application/fhir+json;' + ((this.settings.fhirVersion && this.settings.fhirVersion.length > 0)
+                                                        ? ' fhirVersion=' + this.settings.fhirVersion
+                                                        : '')
+        },
         method: HttpMethod.GET
       })
         .then((response) => {
@@ -602,10 +665,11 @@ export class JSOnFhir {
    * Handles the response of the conformance statement request by saving the relevant data.
    * @param response Response of the conformance Request.
    */
-  private handleConformanceStatementResponse(response): void {
+  private handleConformanceStatementResponse(response: ApiCallResponse): void {
     response.body = JSON.parse(response.body);
     this.urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
     this.urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
+    this.settings.supportedResourceTypes = response.body.rest['0'].resource.map(r => r.type);
     this.settings.fhirVersion = response.body.fhirVersion;
     this.persistMe();
   }
@@ -614,7 +678,7 @@ export class JSOnFhir {
    * Handles the token endpoint response by saving the relevant data from the access token request.
    * @param response Response of the access token request.
    */
-  private handleTokenResponse(response) {
+  private handleTokenResponse(response: ApiCallResponse) {
     this.auth.accessToken = response.body.access_token;
     this.auth.expires = Date.now() + 1000 * response.body.expires_in;
     this.auth.type = response.body.token_type;
@@ -627,7 +691,7 @@ export class JSOnFhir {
    * Helper function that saves the JSOnFhir object to sessionStorage. It is used to restore
    * the JSOnFhir object after a page reload (e.g. after the authenticate() function was called).
    */
-  private persistMe() {
+  private persistMe(): void {
     sessionStorage.setItem('jsOnFhir', JSON.stringify(this));
   }
 
@@ -635,7 +699,7 @@ export class JSOnFhir {
    * Helper function to handle errors (e.g. expired access token).
    * @param error Error object.
    */
-  private handleError(error) {
+  private handleError(error: {body: string, status: number}) {
     if (error.body === 'Invalid token' || error.body === 'Expired token' || error.status === 401) {
       this.logout();
     }
