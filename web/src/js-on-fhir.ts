@@ -10,7 +10,7 @@ export class JSOnFhir {
     conformance: '',
     auth: '',
     redirect: '',
-    token: '',
+    token: ''
   };
   private settings = {
     client: '',
@@ -23,13 +23,13 @@ export class JSOnFhir {
     noAuth: false,
     noPkce: false,
     codeVerifier: '',
-    codeChallenge: '',
+    codeChallenge: ''
   };
   private auth = {
     accessToken: '',
     expires: 0,
     type: '',
-    refreshToken: '',
+    refreshToken: ''
   };
 
   /**
@@ -298,13 +298,13 @@ export class JSOnFhir {
       patient: '',
       codeVerifier: '',
       codeChallenge: '',
-      state: '',
+      state: ''
     };
     this.auth = {
       accessToken: '',
       expires: 0,
       type: '',
-      refreshToken: '',
+      refreshToken: ''
     };
     this.persistMe();
   }
@@ -317,7 +317,7 @@ export class JSOnFhir {
     return {
       access_token: this.auth.accessToken,
       authorization_type: this.auth.type,
-      base_url: this.urls.service,
+      base_url: this.urls.service
     };
   }
 
@@ -338,7 +338,9 @@ export class JSOnFhir {
       this.apiMethods
         .create(resource, this.getApiConfig())
         .then((response) => {
-          response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
+          response.status === 200 || response.status === 201
+            ? resolve(JSON.parse(response.body))
+            : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
@@ -368,7 +370,9 @@ export class JSOnFhir {
       this.apiMethods
         .update(resource, this.getApiConfig())
         .then((response) => {
-          response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
+          response.status === 200 || response.status === 201
+            ? resolve(JSON.parse(response.body))
+            : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
@@ -395,7 +399,9 @@ export class JSOnFhir {
       this.apiMethods
         .search(params, resourceType, this.getApiConfig())
         .then((response) => {
-          response.status === 200 || response.status === 201 ? resolve(JSON.parse(response.body)) : reject(response);
+          response.status === 200 || response.status === 201
+            ? resolve(JSON.parse(response.body))
+            : reject(response);
         })
         .catch((error) => {
           this.handleError(error);
@@ -442,13 +448,19 @@ export class JSOnFhir {
           paramUrl += encodeURI(params);
         } else {
           Object.keys(params).forEach((key, index) => {
-            paramUrl += index === 0 ? key + '=' + encodeURI(params[key]) : '&' + (key + '=' + encodeURI(params[key]));
+            paramUrl += index === 0
+              ? key + '=' + encodeURI(params[key])
+              : '&' + (key + '=' + encodeURI(params[key]));
           });
         }
       }
       // Set '/' prefix to resourceType and resourceId if they exist. If they don't exist, set them both to ''.
-      resourceType = resourceType ? '/' + resourceType : '';
-      resourceId = resourceId ? '/' + resourceId : '';
+      resourceType = resourceType
+        ? '/' + resourceType
+        : '';
+      resourceId = resourceId
+        ? '/' + resourceId
+        : '';
       // Perform operation on fhir server by using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
@@ -458,7 +470,7 @@ export class JSOnFhir {
         },
         jsonBody: true,
         payload: payload,
-        jsonEncoded: typeof payload != 'string',
+        jsonEncoded: typeof payload != 'string'
       })
         .then((response) => {
           resolve(response);
@@ -506,7 +518,9 @@ export class JSOnFhir {
    *          or undefined if patient is not logged in.
    */
   getPatient() {
-    return this.settings.patient && this.settings.patient != '' ? this.settings.patient : undefined;
+    return this.settings.patient && this.settings.patient != ''
+            ? this.settings.patient
+            : undefined;
   }
 
   /**
@@ -537,7 +551,10 @@ export class JSOnFhir {
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
   private generateCodeChallenge(codeVerifier: string) {
-    return Base64.stringify(sha256(codeVerifier)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    return Base64.stringify(sha256(codeVerifier))
+                 .replace(/\+/g, '-')
+                 .replace(/\//g, '_')
+                 .replace(/=+$/, '');
   }
 
   /**
@@ -554,7 +571,7 @@ export class JSOnFhir {
       // Make request to the conformance endpoint using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: cfUrl,
-        method: HttpMethod.GET,
+        method: HttpMethod.GET
       })
         .then((response) => {
           if (response.status === 200) {
@@ -576,7 +593,9 @@ export class JSOnFhir {
    * @returns access Token
    */
   getAccessToken(): string {
-    return this.auth && this.auth.accessToken ? this.auth.accessToken : undefined;
+    return this.auth && this.auth.accessToken
+      ? this.auth.accessToken
+      : undefined;
   }
 
   /**

@@ -1,13 +1,11 @@
 # @i4mi/js-on-fhir FHIR® library with OAuth 2.0 for web applications built with Javascript frameworks
 
-_➰ Use at own risk ➰_
-
 ![][~license]
 ![][~issues]
 
 Wrapper for the I4MI FHIR® resources, inheritance and type definitions library [@i4mi/fhir_r4](https://www.npmjs.com/package/@i4mi/fhir_r4).
 
-This library handles the OAuth 2.0 authorization process, providing essential functionality for the client side. It also provides other functionality to interact with a given fhir server. It can be used in web applications that are built with JavaScript frameworks (e.g. [Angular](https://angular.io/), [Vue.js](https://vuejs.org/) and [Quasar](https://quasar.dev/)).
+This library handles the OAuth 2.0 authorization process, providing essential functionality for the client side. It also provides other functionality to interact with a given FHIR server. It can be used in web applications that are built with JavaScript frameworks (e.g. [Angular](https://angular.io/), [Vue.js](https://vuejs.org/) and [Quasar](https://quasar.dev/)).
 
 See below for [instructions](#2-vue) for using it with [Vue.js](https://vuejs.org/).
 
@@ -61,8 +59,8 @@ const fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl');
 
 where the parameters correspond to:
 
-- _serverUrl_: The URL of the fhir server you want to communicate with.
-- _clientId_: The ID of your fhir application as registered with the fhir server.
+- _serverUrl_: The URL of the FHIR server you want to communicate with.
+- _clientId_: The ID of your FHIR application as registered with the FHIR server.
 - _redirectUrl_: The URL the server can talk back to your app during the auth process. When testing locally, this may look like `http://localhost:8080` or similar. The page loaded from this exact URL must call the `handleAuthResponse()` function (see below). Also mind that the _redirectUrl_ may have to be registered server-side for security reasons.
 - _options_: Optional parameter. Options you want to pass as an object literal to the constructor for configuring the jsOnFhir object.
   - _doesNotNeedAuth_: Optional parameter. Set to true when the FHIR server you're using doesn't require authentication (e.g. when connecting to the EPD playground via MobileAccessGateway). In this case, the parameters clientId and redirectUrl do not matter (but still have to be set.)
@@ -74,29 +72,29 @@ The constructor keeps track of your jsOnFhir instances and persists them over pa
 If you want to use js-on-fhir with a FHIR server that does not need authentication (e.g. when accessing the [EPD Playground with the Mobile Access Gateway](https://epdplayground.ch/index.php?title=Main_Page), or when you're doing the [FHIR Drills tutorial](https://fhir-drills.github.io/index.html)), you can set the optional _doesNotNeedAuth_ parameter in the constructor via the options object literal to `true`:
 
 ```javascript
-const fhir = new JSOnFhir('serverUrl', '', '', {doesNotNeedAuth:true});
+const fhir = new JSOnFhir('serverUrl', '', '', { doesNotNeedAuth: true });
 ```
 
 With this setting, you will be able to do read and / or write requests (depending on the server's configuration) without having to deal with the auth process. The second and third parameter of the constructor (_clientId_ and _redirectUrl_) can be empty strings, but should not be `null` or `undefined`.
 
 <a name="1.2.3-no-pkce"></a>
 #### 1.2.3 Authorization without PKCE extension
-Per default jsOnFhir uses the [OAuth 2.0 Authorization Code Grant](tools.ietf.org/html/rfc6749#section-1.3.1) with the [PKCE (RFC 7636): Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) extension. The _PKCE_ is an extension to the authorization code flow to prevent CSRF and authorization code injection attacks. However, if the fhir server you are using does not support this extension you can set the optional _disablePkce_ parameter in the constructor via the options object literal to `true`:
+Per default jsOnFhir uses the [OAuth 2.0 Authorization Code Grant](tools.ietf.org/html/rfc6749#section-1.3.1) with the [PKCE (RFC 7636): Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) extension. The _PKCE_ is an extension to the authorization code flow to prevent CSRF and authorization code injection attacks. However, if the FHIR server you are using does not support this extension you can set the optional _disablePkce_ parameter in the constructor via the options object literal to `true`:
 
 ```javascript
-const fhir = new JSOnFhir('serverUrl', '', '', { disablePkce: true });
+const fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl', { disablePkce: true });
 ```
 
 <a name="1.3-auth"></a>
 
 ### 1.3 Auth process
-Before you can read or write to the FHIR server, you need to authenticate with OAuth 2.0. As mentioned in section [1.2.3](#1.2.3-no-pkce) this plugin supports the OAuth 2.0 Authorization Code Grant with the PKCE extension.
+Before you can read or write to the FHIR server, you need to authenticate with OAuth 2.0. As mentioned in section [1.2.3](#1.2.3-no-pkce), this plugin supports the OAuth 2.0 Authorization Code Grant with the PKCE extension.
 Strictly speaking this plugin can't completely handle the whole OAuth 2.0 procedure. It provides necessary client side functionality, but there are still dependencies which arise from the auth server and have to be handled by the latter.
 
 <a name="1.3.1-authStart"></a>
 
 #### 1.3.1 Starting the auth process
-For triggering the auth process, you can call the `authenticate()` method from anywhere in your web application, e.g, on the click of a login button. When everything is configured properly, this opens a page for your user to log in with his credentials. The authorization server then validates the request to ensure that all required parameters are present and valid. If the request is valid, this page redirects to the _redirectUrl_ given before. This is known as the authorization response.
+For triggering the auth process, you can call the `authenticate()` method from anywhere in your web application. When everything is configured properly, this opens a page for your user to log in with their credentials. The authorization server then validates the request to ensure that all required parameters are present and valid. If the request is valid, this page redirects to the _redirectUrl_ given before. This is known as the authorization response.
 
 #### 1.3.2 Second step of the auth process
 For handling the authorization response, you need to call the `handleAuthResponse()` method from the page that is loaded when calling the given _redirectUrl_. You don't have to differentiate if the page was called by the server's auth page or just by using your app, this is handled by the method itself.
@@ -112,30 +110,28 @@ So if you want to use the _refresh token_ for re-authentication, you have to per
 
 ```javascript
 let refreshToken;
-fhir
-  .handleAuthResponse()
-  .then((res) => {
-    // check if the response is not null
-    if (res) {
-      // we are authenticated
-      // ... and can keep refreshToken
-      refreshToken = res.refresh_token;
-    }
-  })
-  .catch((err) => {
-    // oops, something went wrong
-    console.log(err);
-  });
+fhir.handleAuthResponse()
+.then((res) => {
+  // check if the response is not null
+  if (res) {
+    // we are authenticated
+    // ... and can keep refreshToken
+    refreshToken = res.refresh_token;
+  }
+})
+.catch((err) => {
+  // oops, something went wrong
+  console.log(err);
+});
 
-// now we can use the refresh token later for re-authentication
-fhir
-  .refreshAuth(refreshToken)
-  .then((res) => {
-    /* do something*/
-  })
-  .catch((err) => {
-    /* do something */
-  });
+// later, we can use the refresh token for re-authentication
+fhir.refreshAuth(refreshToken)
+.then((res) => {
+  /* do something*/
+})
+.catch((err) => {
+  /* do something */
+});
 ```
 
 The _refresh token_ is only valid once, so the `refreshAuth()` method also returns a promise with the server response, including a new _refresh token_. You can save this new _refresh token_ the same way as you did when calling `handleAuthResponse()`.
@@ -147,7 +143,7 @@ The following table describes all the methods intended for public use.
 | Function            | Description                            | Params | Returns |  
 | ---                 | ---                                    | ---    | ---     |
 |authenticate(*params?*)     |Starts the two-step authentication process (see [1.3.1](#1.3.1-authStart)).|*params*: (optional) additional params to be added to the auth URL, as key/value object.  |nothing<br/>(but redirects to the server's auth page) |
-|handleAuthResponse()|Handles the callback by the auth server. Has to be called when loading the page by the *redirectUrl* (see [1.2.1](#1.2.1-constructor)). The returned auth token is handled by the plugin and does not require further action.|none|A promise that resolves to <br/>a) the server's response when in the auth process and the request was successful (HTTP status 200 / 201)<br/>b) null when not in the auth process or <br/>c) rejects with an error message when in the auth process and an error occurred|
+|handleAuthResponse()|Handles the callback by the auth server. Has to be called when loading the page by the *redirectUrl* (see [1.2.1](#1.2.1-constructor)). The returned auth token is handled by the plugin and does not require further action.|none|A promise that resolves to <br/>a) the server's response when in the auth process and the request was successful (HTTP status 200 / 201)<br/>b) null when not in the auth process or <br/>c) rejects with an error message when in the auth process and an error occurred.|
 refreshAuth(*rToken*)  |Refreshes the authentication with a refresh token. The returned auth token is handled by the plugin and does not require further action.| *rToken*: a refresh token that was saved from an earlier server auth response.|A promise that <br/>resolves to the server's response (including a new refresh token) or <br/>rejects with an error message.|
 isLoggedIn()          |Checks if an auth token is set and not expired.|none|*true* if a token is set and not yet expired, *false* if no token is set, or it is expired.|
 logout()              |Logs out the user by deleting all the authentication information.|none|nothing|
@@ -161,12 +157,13 @@ setConformanceUrl(*url*)|Manually sets the conformance URL. Only necessary if it
 setScope(*scope*)|Manually sets the scope. Only necessary if scope differs from the default `user/*.*`.|*scope*: the desired scope. |nothing|
 
 <a name="1.5-examples"></a>
-## 1.5 Examples of Interactions with a fhir server
+## 1.5 Examples of Interactions with a FHIR server
 
 ### 1.5.1 Search
 Searching for resources returns a bundle with all resources matching the search criteria (in the example: all resources of type "Observation" since the Titanic sank on April 15th in 1912.)
 ```javascript
-fhir.search('Observation', { date: 'ge1912-04-15' }).then((response) => {
+fhir.search('Observation', { date: 'ge1912-04-15' })
+.then((response) => {
   // response is now the server response with the resource in the body
   // only if status is 200 or 201
 
@@ -187,7 +184,8 @@ let myResource = {
   "resourceType": "Observation",
   /* ... */
 }
-fhir.create(myResource).then((response) => {
+fhir.create(myResource)
+.then((response) => {
   // response is now the server response with the resource in the body
   // only if status is 200 or 201
   }).catch((error) => {
@@ -201,7 +199,8 @@ fhir.create(myResource).then((response) => {
 Updates a FHIR resource.
 *IMPORTANT:* Do not forget that you need the resource.id for updating!
 ```javascript
-fhir.update(myResource).then((response) => {
+fhir.update(myResource)
+.then((response) => {
   // response is now the server response with the resource in the body
   // only if status is 200 or 201
   }).catch((error) => {
@@ -225,10 +224,19 @@ import App from './App.vue'
 
 
 /* snip: insert this to your main.js */
+
 // import JSonFhir after installing it from npm
 import { JSOnFhir } from '@i4mi/js-on-fhir'
 // declare a constant with your correct parameters
-const fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl');
+const fhir = new JSOnFhir(
+  'serverUrl',
+  'clientId',
+  'redirectUrl',
+  {
+    disablePkce: false,
+    doesNotNeedAuth: false
+  }
+);
 // attach a getter function to the Vue prototype to make it globally available
 Object.defineProperties(Vue.prototype, {
   $fhir: {
@@ -237,8 +245,7 @@ Object.defineProperties(Vue.prototype, {
     }
   }
 });
-/* snap */
-
+/* snap - that's it */
 
 Vue.config.productionTip = false
 new Vue({
@@ -255,10 +262,19 @@ import App from './App.vue';
 const app = createApp(App);
 
 /* snip: insert this to your main.js */
+
 // import JSonFhir after installing it from npm
 import { JSOnFhir } from '@i4mi/js-on-fhir';
 // set global property
-app.config.globalProperties.$fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl');
+app.config.globalProperties.$fhir = new JSOnFhir(
+  'serverUrl',
+  'clientId',
+  'redirectUrl',
+  {
+    disablePkce: false,
+    doesNotNeedAuth: false
+  }
+);
 /* snap - that's it */
 
 app.mount('#app');
@@ -302,7 +318,7 @@ You then can call the `this.$fhir.authenticate()` method from anywhere in your p
 
 <a name="3-demoApp"></a>
 ## 3 Demo app
-A demonstration of the most important functions and the implementation can be seen in a simple demo app available on [i4mi/midata-quasar-starter-app](https://github.com/i4mi/midata-quasar-starter-app). The demo app is built using the Quasar Framework, which uses Vue.js as an underlying technology.
+A demonstration of the most important functions and the implementation can be seen in a simple demo app available on [i4mi/midata-quasar-starter-app](https://github.com/i4mi/midata-quasar-starter-app). The demo app is built using the Quasar Framework, which uses Vue.js as an underlying technology and can be used as a starter template for your own project.
 
 <a name="4-dev"></a>
 ## 4 Dev

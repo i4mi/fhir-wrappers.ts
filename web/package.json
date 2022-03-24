@@ -9,8 +9,8 @@
     },
     "dependencies": {
         "@i4mi/fhir_r4": "^1.0.10",
-        "crypto-js": "^4.1.1",
-        "crypto-random-string": "^4.0.0"
+        "crypto-js": "4.1.1",
+        "crypto-random-string": "4.0.0"
     },
     "repository": {
         "type": "git",
