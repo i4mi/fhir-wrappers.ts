@@ -356,7 +356,7 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-03-01 | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Remove deprecated processMessage() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor. <br /> - Link to the new demo app. |
+| 1.0.0   | 2022-04-12 | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor. <br /> - Link to the new demo app. |
 | 0.2.1   | 2021-11-10 | - Add performOperation() method.<br />- Adjusted README for usage with Vue 3.|
 | 0.2.0   | 2021-11-03 | - Add processMessage() method.<br />- Fix errors in README. |
 | 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README. <br />- Fix vulnerabilities in packages. |

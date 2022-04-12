@@ -49,6 +49,7 @@ export class JSOnFhir {
     type: '',
     refreshToken: ''
   };
+  private storageKey: string;
 
   /**
    * Creates a new JSOnFhir object and persists it in the sessionStorage so that is
@@ -68,6 +69,7 @@ export class JSOnFhir {
    * @param options.fhirVersion?      Set FHIR version to use. Defaults to 4.0.1.
    */
   constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: string }) {
+    this.storageKey = this.createStorageKey(serverUrl, clientId);
     if (!options) {
       options = { doesNotNeedAuth: false, disablePkce: false, fhirVersion: '4.0.1' };
     } else if (options) {
@@ -79,7 +81,7 @@ export class JSOnFhir {
       }
     }
     // Check if there is a jsOnFhir object in sessionStorage.
-    const persisted = JSON.parse(sessionStorage.getItem('jsOnFhir'));
+    const persisted = JSON.parse(sessionStorage.getItem(this.storageKey));
     if (persisted != null) {
       if (persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId) {
         // Assign prototype to the object loaded from storage, so it becomes
@@ -688,11 +690,18 @@ export class JSOnFhir {
   }
 
   /**
+   * Helper function for creating a storage key that is unique for a server / client combination.
+   */
+  private createStorageKey(serverUrl: string, clientId: string): string {
+    return 'jsOnFhir' + Base64.stringify(serverUrl + clientId);
+  }
+
+  /**
    * Helper function that saves the JSOnFhir object to sessionStorage. It is used to restore
    * the JSOnFhir object after a page reload (e.g. after the authenticate() function was called).
    */
   private persistMe(): void {
-    sessionStorage.setItem('jsOnFhir', JSON.stringify(this));
+    sessionStorage.setItem(this.storageKey, JSON.stringify(this));
   }
 
   /**
