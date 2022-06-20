@@ -65,6 +65,7 @@ where the parameters correspond to:
 - _options_: Optional parameter. Options you want to pass as an object literal to the constructor for configuring the jsOnFhir object.
   - _doesNotNeedAuth_: Optional parameter. Set to true when the FHIR server you're using doesn't require authentication (e.g. when connecting to the EPD playground via MobileAccessGateway). In this case, the parameters clientId and redirectUrl do not matter (but still have to be set.)
   - _disablePkce_: Optional paramter. Set to true if you want to use the OAuth 2.0 authorization code flow instead of the recommended and more secure PKCE flow or the server does not support PKCE.
+  - _fhirVersion_: Optional parameter. Specify the FHIR version you want to use (and that is supported by the server). Default value is '4.0.1'.
 
 The constructor keeps track of your jsOnFhir instances and persists them over page reloads, as long as you keep the browser session. This means that when you call the constructor with the same parameters again during a session, the earlier created instance is restored instead of creating a new one, including all the auth details.
 
@@ -150,6 +151,7 @@ logout()              |Logs out the user by deleting all the authentication info
 create(*resource*)    |Creates a new resource on the FHIR server.|*resource*: the resource to create.|A promise that: <br/>resolves with the created resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 update(*resource*)    |Updates an existing resource on the FHIR server.|*resource*: the resource to update. Note that the *resource.id* must be set and correct.|A promise that:<br/>resolves with the updated resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
 search(*resourceType*, *params?*)|Searches for resources on the FHIR server.|*resourceType*: the resource type to look up.<br/>*params*: (optional) the FHIR search parameters (see [hl7.org](https://www.hl7.org/fhir/search.html) for details).|A promise that:<br/>a) resolves to the server's response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message.|
+search(*resourceType*, *id*)|Fetches a resource with known id fromthe FHIR server.|*resourceType*: the resource type to look up.<br/>*id*: The unique FHIR id of the resource.|A promise that:<br/>a) resolves to the server's response (as a Resource object, not a Bundle) if sucessful or<br/>b) rejects with an error message.|
 performOperation(*operation*, *payload?*, *httpMethod?*, *params*?, *resourceType?*, *resourceId?*)| Performs a [FHIR Operation](https://www.hl7.org/fhir/operations.html), as for example processing a FHIR Message, on the FHIR server.|*operation*: The operation type to perform, without leading $ sign (use `process-message`, not `$process-message`).<br />*payload* (optional): Input payload for the operation<br />*httpMethod* (optional): Specify the HTTP method for the operation (`GET`, `POST`, `PUT` or `DELETE`, default is `POST`.)<br />*params* (optional): Parameter for the operation, either as a key/value pair object (like `{id: 'a1b2c3'}`) or as a string of url parameters (like `?id=a1b2c3`)<br /> *resourceType* (optional): String indicating the resource type to perform the operation on (e.g. `Observation`).<br />*resourceId* (optional): Use resource ID (e.g. `s`) to specify the resource instance to perform the operation on. Can only be used in combination with a *resourceType*. | A promise that:<br/>a) resolves to the server's response (a FHIR bundle with the search results) if sucessful or<br/>b) rejects with an error message. |
 getPatient()          |Gets the resource ID of the current patient, if logged in.|none|The resource ID of the Patient resource of the currently logged in user. `undefined` if no user is logged in.|
 setLanguage(*lang*)   |Sets the language used for the server's auth window (if supported server-side).|*lang*: The abbreviation of the wanted language (e.g. `'en'`, `'de'`, `'fr'` or `'it'`).|nothing|
@@ -346,9 +348,15 @@ Create a new issue with the label ![][~web].
 
 <a name="6-changeLog"></a>
 ## 6 Changelog
+
+### Breaking changes in Version 1.0.0
+- Different methods have no typed return values. In TypeScript projects, this may lead to errors.
+- The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
+- TODO: other breaking changes?
+
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-03-01 | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Remove deprecated processMessage() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor. <br /> - Link to the new demo app. |
+| 1.0.0   | 2022-04-12 | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor. <br /> - Link to the new demo app. |
 | 0.2.1   | 2021-11-10 | - Add performOperation() method.<br />- Adjusted README for usage with Vue 3.|
 | 0.2.0   | 2021-11-03 | - Add processMessage() method.<br />- Fix errors in README. |
 | 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README. <br />- Fix vulnerabilities in packages. |
