@@ -31,7 +31,7 @@ export class JSOnFhir {
   };
   private settings = {
     client: '',
-    patient: '',
+    userId: '',
     scope: '',
     state: '',
     language: '',
@@ -319,7 +319,7 @@ export class JSOnFhir {
   logout(): void {
     this.settings = {
       ...this.settings,
-      patient: '',
+      userId: '',
       codeVerifier: '',
       codeChallenge: '',
       state: ''
@@ -573,14 +573,28 @@ export class JSOnFhir {
   }
 
   /**
-   * Returns the resource ID of the patient resource of the logged-in user.
-   * @returns The ID of the patient resource as a string if patient is logged in,
-   *          or undefined if patient is not logged in.
-   */
-  getPatient(): string {
-    return this.settings.patient && this.settings.patient != ''
-            ? this.settings.patient
-            : undefined;
+  * Returns the resource id of the Patient resource of the logged in user
+  * @return       the Patient Resource ID as a string, if logged in
+  * @return       undefined if not logged in
+  * @deprecated   use getUserId() instead
+  */
+   getPatient() {
+    console.warn('js-on-fhir: getPatient() is deprecated since V1.0.0 and will be removed in a later versions.\nUse getUserId() instead.');
+    return this.getUserId();
+  }
+
+  /**
+  * Returns the resource id of the of the logged in user. With this id, you can then fetch the
+  * Patient (for normal user) or Practitioner (for health professionals or researcher).
+  * @return       the Patient Resource ID as a string, if logged in
+  *               undefined if not logged in
+  */
+  getUserId() {
+    if(this.settings.userId && this.settings.userId != ''){
+      return this.settings.userId;
+    } else {
+      return undefined;
+    }
   }
 
   /**
@@ -685,7 +699,7 @@ export class JSOnFhir {
     this.auth.expires = Date.now() + 1000 * response.body.expires_in;
     this.auth.type = response.body.token_type;
     this.auth.refreshToken = response.body.refresh_token;
-    this.settings.patient = response.body.patient;
+    this.settings.userId = response.body.patient;
     this.persistMe();
   }
 
