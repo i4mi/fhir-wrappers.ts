@@ -310,7 +310,7 @@ export class JSOnFhir {
    *                      false when doesNotNeedAuth? was set true in the constructor.
    */
   isLoggedIn(): boolean {
-    return this.auth.accessToken != '' && this.auth.expires > Date.now();
+    return this.auth.accessToken !== '' && this.auth.expires > Date.now();
   }
 
   /**
@@ -530,7 +530,7 @@ export class JSOnFhir {
         },
         jsonBody: true,
         payload: payload,
-        jsonEncoded: typeof payload != 'string'
+        jsonEncoded: typeof payload !== 'string'
       })
         .then((response) => {
           resolve(JSON.parse(response.body) as Resource);
@@ -590,7 +590,7 @@ export class JSOnFhir {
   *               undefined if not logged in
   */
   getUserId() {
-    if(this.settings.userId && this.settings.userId != ''){
+    if(this.settings.userId && this.settings.userId !== ''){
       return this.settings.userId;
     } else {
       return undefined;
