@@ -295,6 +295,7 @@ Create a new issue with the label ![][~web].
 ## 5 Changelog
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
+| 0.2.2   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
 | 0.2.1   | 2021-11-10 | - Add performOperation()<br />- Adjusted README for usage with Vue 3.|
 | 0.2.0   | 2021-11-03 | - Add processMessage()<br />- Fix errors in README |
 | 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
