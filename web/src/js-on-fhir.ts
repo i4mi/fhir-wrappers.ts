@@ -404,7 +404,8 @@ export class JSOnFhir {
         url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
         method: httpMethod,
         headers: {
-          'Content-Type': 'application/fhir+json; fhirVersion=4.0'
+          'Content-Type': 'application/fhir+json; fhirVersion=4.0',
+          'Authorization': 'Bearer ' + this.getAccessToken()
         },
         jsonBody: true,
         payload: payload,
