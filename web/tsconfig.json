@@ -16,5 +16,6 @@
       "./src/index.ts"
     ],
     "compileOnSave": false,
-    "buildOnSave": false
+    "buildOnSave": false,
+    "exclude": ["node_modules", "dist", "src", "webpack.config.js", "tsconfig.json"]
   }

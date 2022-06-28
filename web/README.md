@@ -295,7 +295,9 @@ Create a new issue with the label ![][~web].
 ## 5 Changelog
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 0.2.2   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
+| 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
+| 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
+| 0.2.2   | 2022-06-27 | (skipped for technical reasons)|
 | 0.2.1   | 2021-11-10 | - Add performOperation()<br />- Adjusted README for usage with Vue 3.|
 | 0.2.0   | 2021-11-03 | - Add processMessage()<br />- Fix errors in README |
 | 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
