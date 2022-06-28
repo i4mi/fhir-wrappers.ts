@@ -350,9 +350,11 @@ Create a new issue with the label ![][~web].
 ## 6 Changelog
 
 ### Breaking changes in Version 1.0.0
-- Different methods have no typed return values. In TypeScript projects, this may lead to errors.
-- The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
+- Different methods have now typed return values. In TypeScript projects, this may lead to errors.
+- The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. 
+  - For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
+- The (undocumented) generateRandomState(length) method is no longer available. If you used it to create a prefilled registering link, you can instead use the authenticate() method and pass the prefilled fields as key/value pair.
 - TODO: other breaking changes?
 - TODO: update release date in change log
 
