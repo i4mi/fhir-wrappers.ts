@@ -354,13 +354,17 @@ Create a new issue with the label ![][~web].
 - The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
 - TODO: other breaking changes?
+- TODO: update release date in change log
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-04-12 | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Add getUserId() method. <br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
-| 0.2.1   | 2021-11-10 | - Add performOperation() method.<br />- Adjusted README for usage with Vue 3.|
-| 0.2.0   | 2021-11-03 | - Add processMessage() method.<br />- Fix errors in README. |
-| 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README. <br />- Fix vulnerabilities in packages. |
+| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Add getUserId() method. <br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
+| 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
+| 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
+| 0.2.2   | 2022-06-27 | (skipped for technical reasons)|
+| 0.2.1   | 2021-11-10 | - Add performOperation()<br />- Adjusted README for usage with Vue 3.|
+| 0.2.0   | 2021-11-03 | - Add processMessage()<br />- Fix errors in README |
+| 0.1.0   | 2021-10-18 | - Add ability to use FHIR servers without authentication. <br />- Update some dependencies.<br />- Add changelog to README.<br />- Fix vulnerabilities in packages |
 | 0.0.21  | 2021-09-06 | Updated some dependencies.|
 | 0.0.20  | 2020-11-20 | Add *getAccessToken()* method.|
 | 0.0.19  | 2020-11-03 | Logout when server responds with 401 or invalid / expired token.|

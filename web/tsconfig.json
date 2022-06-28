@@ -3,17 +3,19 @@
     "moduleResolution": "node",
     "module": "commonjs",
     "target": "es5",
-    "lib": ["es2015", "dom"],
+    "lib": [ "es2015", "dom" ],
     "outDir": "js-on-fhir",
     "allowSyntheticDefaultImports": true,
     "suppressImplicitAnyIndexErrors": true,
     "forceConsistentCasingInFileNames": true,
     "sourceMap": true,
     "declaration": true,
-    "jsx": "react",
-    "esModuleInterop": true
+    "jsx": "react"
   },
-  "files": ["./src/index.ts"],
+  "files": [
+    "./src/index.ts"
+  ],
   "compileOnSave": false,
-  "buildOnSave": false
+  "buildOnSave": false,
+  "exclude": ["node_modules", "dist", "src", "webpack.config.js", "tsconfig.json"]
 }

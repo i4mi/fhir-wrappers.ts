@@ -526,7 +526,8 @@ export class JSOnFhir {
         headers: {
           'Content-Type': 'application/fhir+json;' + ((this.settings.fhirVersion && this.settings.fhirVersion.length > 0)
                                                         ? ' fhirVersion=' + this.settings.fhirVersion
-                                                        : '')
+                                                        : ''),
+          'Authorization': 'Bearer ' + this.getAccessToken()
         },
         jsonBody: true,
         payload: payload,
@@ -603,7 +604,7 @@ export class JSOnFhir {
    * cross-site request forgery according to rfc 6749 section 4.1.1.
    * @returns state (url-safe) with a length of 128 characters.
    */
-  private generateState(): string {
+  generateState(): string {
     return cryptoRandomString({ length: 128, type: 'url-safe' });
   }
 
