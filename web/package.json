@@ -1,6 +1,6 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "0.2.4",
+    "version": "0.3.0",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
     "main": "js-on-fhir/index.js",
     "scripts": {
@@ -8,7 +8,7 @@
         "build": "npm run clean && tsc && tsc -m es6 --outDir js-on-fhir-esm"
     },
     "dependencies": {
-        "@i4mi/fhir_r4": "^1.1.1"
+        "@i4mi/fhir_r4": "^2.0.0"
     },
     "repository": {
         "type": "git",

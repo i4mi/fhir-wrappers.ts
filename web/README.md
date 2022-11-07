@@ -295,6 +295,7 @@ Create a new issue with the label ![][~web].
 ## 5 Changelog
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
+| 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
 | 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
 | 0.2.2   | 2022-06-27 | (skipped for technical reasons)|
