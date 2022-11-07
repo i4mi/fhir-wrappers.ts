@@ -361,6 +361,7 @@ Create a new issue with the label ![][~web].
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
 | 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Add getUserId() method. <br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
+| 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
 | 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|
 | 0.2.2   | 2022-06-27 | (skipped for technical reasons)|
