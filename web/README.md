@@ -157,6 +157,7 @@ getUserId()          |Gets the resource ID of the current user, if logged in. Wi
 setLanguage(*lang*)   |Sets the language used for the server's auth window (if supported server-side).|*lang*: The abbreviation of the wanted language (e.g. `'en'`, `'de'`, `'fr'` or `'it'`).|nothing|
 setConformanceUrl(*url*)|Manually sets the conformance URL. Only necessary if it deviates from the standard `myserver.net/fhir/metadata` scheme, as this is generated as a default.|*url*: the server's conformance URL.|nothing|
 setScope(*scope*)|Manually sets the scope. Only necessary if scope differs from the default `user/*.*`.|*scope*: the desired scope. |nothing|
+changeFhirVersion(*version*)|Select the FHIR version to use in the requests.|*version*: The FHIR version to use (caution: support of versions can be restricted on the server used). Supported versions are: STU3 (`3.0.2`), R4 (`4.0.1`), R4B (`4.3.0`) and R5 (`5.0.0`)|nothing|
 
 <a name="1.5-examples"></a>
 ## 1.5 Examples of Interactions with a FHIR server
@@ -350,7 +351,7 @@ Create a new issue with the label ![][~web].
 ## 6 Changelog
 
 ### Breaking changes in Version 1.0.0
-- Different methods have now typed return values. In TypeScript projects, this may lead to errors.
+- Different methods have now typed return values. In TypeScript projects, this may lead to errors (that are usually easy to fix, though).
 - The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. 
   - For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
@@ -360,7 +361,7 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method. <br /> - Add getUserId() method. <br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
+| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
 | 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
 | 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|

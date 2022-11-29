@@ -20,6 +20,13 @@ export interface AuthResponse {
     // using the same or a subset of the original authorization grants
 }
 
+export enum FHIR_VERSION {
+  'STU3' = '3.0.2',
+  'R4' = '4.0.1',
+  'R4B' = '4.3.0',
+  'R5' = '5.0.0'
+}
+
 export class JSOnFhir {
   private apiMethods = new ApiMethods();
   private urls = {
@@ -36,7 +43,7 @@ export class JSOnFhir {
     state: '',
     language: '',
     supportedResourceTypes: new Array<string>(),
-    fhirVersion: '4.0.1',
+    fhirVersion: FHIR_VERSION.R4,
     responseType: 'code',
     noAuth: false,
     noPkce: false,
@@ -66,12 +73,14 @@ export class JSOnFhir {
    * @param options.disablePkce?      Optional parameter. Set to true if you want to use the OAuth 2.0
    *                                  authorization code flow instead of the recommended and more secure PKCE flow
    *                                  or the server does not support PKCE.
-   * @param options.fhirVersion?      Set FHIR version to use. Defaults to 4.0.1.
+   * @param options.fhirVersion?      Set FHIR version to use. Support of versions can be limited on the server used.
+   *                                  Defaults to R4 / 4.0.1.
+   *                                  Possibilities: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
    */
-  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: string }) {
+  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: FHIR_VERSION }) {
     this.storageKey = this.createStorageKey(serverUrl, clientId);
     if (!options) {
-      options = { doesNotNeedAuth: false, disablePkce: false, fhirVersion: '4.0.1' };
+      options = { doesNotNeedAuth: false, disablePkce: false, fhirVersion: FHIR_VERSION.R4 };
     } else if (options) {
       if (typeof options.doesNotNeedAuth === 'undefined') {
         options.doesNotNeedAuth = false;
@@ -100,7 +109,12 @@ export class JSOnFhir {
     this.settings.scope = 'user/*.*';
     this.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
     this.settings.noPkce = options.disablePkce ? options.disablePkce : false;
-    this.settings.fhirVersion = options.fhirVersion ? options.fhirVersion : '4.0.1';
+    if (options.fhirVersion) {
+      this.settings.fhirVersion = options.fhirVersion;
+      this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + options.fhirVersion); 
+    } else {
+      this.settings.fhirVersion = FHIR_VERSION.R4;
+    }
     this.persistMe();
   }
 
@@ -579,7 +593,7 @@ export class JSOnFhir {
   * @return       undefined if not logged in
   * @deprecated   use getUserId() instead
   */
-   getPatient() {
+  getPatient() {
     console.warn('js-on-fhir: getPatient() is deprecated since V1.0.0 and will be removed in a later versions.\nUse getUserId() instead.');
     return this.getUserId();
   }
@@ -676,6 +690,17 @@ export class JSOnFhir {
     return this.auth && this.auth.accessToken
       ? this.auth.accessToken
       : undefined;
+  }
+
+  /**
+   * Changes the FHIR version used to do the requests to the server.
+   * Note that the available versions may be restricted on your server.
+   * @param version The FHIR version to use. Support of versions can be restricted on the server used.
+   *                Supported versions: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
+   */
+  changeFhirVersion(version: FHIR_VERSION): void {
+    this.settings.fhirVersion = version;
+    this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + version); 
   }
 
   /**
