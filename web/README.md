@@ -356,6 +356,7 @@ Create a new issue with the label ![][~web].
   - For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
 - The (undocumented) generateRandomState(length) method is no longer available. If you used it to create a prefilled registering link, you can instead use the authenticate() method and pass the prefilled fields as key/value pair.
+- Version 2.0.0 of `@i4mi/fhir_r4` is used, which has incompabilities to previous versions. You may have to update your project to Version 2.0.0 of `@i4mi/fhir_r4` when using TypeScript.
 - TODO: other breaking changes?
 - TODO: update release date in change log
 
