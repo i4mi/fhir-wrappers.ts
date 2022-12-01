@@ -64,7 +64,7 @@ where the parameters correspond to:
 - _redirectUrl_: The URL the server can talk back to your app during the auth process. When testing locally, this may look like `http://localhost:8080` or similar. The page loaded from this exact URL must call the `handleAuthResponse()` function (see below). Also mind that the _redirectUrl_ may have to be registered server-side for security reasons.
 - _options_: Optional parameter. Options you want to pass as an object literal to the constructor for configuring the jsOnFhir object.
   - _doesNotNeedAuth_: Optional parameter. Set to true when the FHIR server you're using doesn't require authentication (e.g. when connecting to the EPD playground via MobileAccessGateway). In this case, the parameters clientId and redirectUrl do not matter (but still have to be set.)
-  - _disablePkce_: Optional paramter. Set to true if you want to use the OAuth 2.0 authorization code flow instead of the recommended and more secure PKCE flow or the server does not support PKCE.
+  - _disablePkce_: Optional parameter. Set to true if you want to use the OAuth 2.0 authorization code flow instead of the recommended and more secure PKCE flow or the server does not support PKCE.
   - _fhirVersion_: Optional parameter. Specify the FHIR version you want to use (and that is supported by the server). Default value is '4.0.1'.
 
 The constructor keeps track of your jsOnFhir instances and persists them over page reloads, as long as you keep the browser session. This means that when you call the constructor with the same parameters again during a session, the earlier created instance is restored instead of creating a new one, including all the auth details.
@@ -80,7 +80,7 @@ With this setting, you will be able to do read and / or write requests (dependin
 
 <a name="1.2.3-no-pkce"></a>
 #### 1.2.3 Authorization without PKCE extension
-Per default jsOnFhir uses the [OAuth 2.0 Authorization Code Grant](tools.ietf.org/html/rfc6749#section-1.3.1) with the [PKCE (RFC 7636): Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) extension. The _PKCE_ is an extension to the authorization code flow to prevent CSRF and authorization code injection attacks. However, if the FHIR server you are using does not support this extension you can set the optional _disablePkce_ parameter in the constructor via the options object literal to `true`:
+Per default jsOnFhir uses the [OAuth 2.0 Authorization Code Grant](tools.ietf.org/html/rfc6749#section-1.3.1) with the [PKCE (RFC 7636): Proof Key for Code Exchange](https://datatracker.ietf.org/doc/html/rfc7636) extension. The _PKCE_ is an extension to the authorization code flow to prevent CSRF and authorization code injection attacks. However, if the FHIR server you are using does not support this extension, you can set the optional _disablePkce_ parameter in the constructor via the options object literal to `true`:
 
 ```javascript
 const fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl', { disablePkce: true });

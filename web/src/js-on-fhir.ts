@@ -1,23 +1,21 @@
 import { apiCall, HttpMethod, ApiMethods, ApiConfig, ApiCallResponse, Resource, Bundle } from '@i4mi/fhir_r4';
-import sha256 from 'crypto-js/sha256';
-import Base64 from 'crypto-js/enc-base64';
+import sjcl from 'sjcl';
 import cryptoRandomString from 'crypto-random-string';
-
 
 /**
  * A response to successful oauth request
  * ACCORDING http://www.hl7.org/fhir/smart-app-launch/index.html
  */
 export interface AuthResponse {
-    state: string; // if everyting ok --> none
+    state: string;        // if everyting ok --> none
     access_token: string; // The access token issued by the authorization server
     token_type: 'Bearer'; // Fixed value: Bearer
-    expires_in: number; // Lifetime in seconds of the access token, after which the token SHALL NOT be accepted by the resource server
-    scope: string; // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
-    id_token?: string; // Authenticated patient identity and user details, if requested
-    patient: string; // field name for user id defined by SMART on FHIR
-    refresh_token: string; // Token that can be used to obtain a new access token,
-    // using the same or a subset of the original authorization grants
+    expires_in: number;   // Lifetime of the access token in seconds, after which the token SHALL NOT be accepted by the resource server
+    scope: string;        // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
+    id_token?: string;    // Authenticated patient identity and user details, if requested
+    patient: string;      // field name for user id defined by SMART on FHIR
+    refresh_token: string;// Token that can be used to obtain a new access token,
+                          // using the same or a subset of the original authorization grants
 }
 
 export enum FHIR_VERSION {
@@ -25,7 +23,7 @@ export enum FHIR_VERSION {
   'R4' = '4.0.1',
   'R4B' = '4.3.0',
   'R5' = '5.0.0'
-}
+};
 
 export class JSOnFhir {
   private apiMethods = new ApiMethods();
@@ -588,7 +586,7 @@ export class JSOnFhir {
   }
 
   /**
-  * Returns the resource id of the Patient resource of the logged in user
+  * Returns the resource id of the Patient or Practitioner resource of the logged in user
   * @return       the Patient Resource ID as a string, if logged in
   * @return       undefined if not logged in
   * @deprecated   use getUserId() instead
@@ -640,10 +638,10 @@ export class JSOnFhir {
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
   private generateCodeChallenge(codeVerifier: string): string {
-    return Base64.stringify(sha256(codeVerifier))
-                 .replace(/\+/g, '-')
-                 .replace(/\//g, '_')
-                 .replace(/=+$/, '');
+    return (sjcl.hash.sha256.hash(codeVerifier))
+      .replace(/\+/g, '-')
+      .replace(/\//g, '_')
+      .replace(/=+$/, '');
   }
 
   /**
@@ -733,7 +731,7 @@ export class JSOnFhir {
    * Helper function for creating a storage key that is unique for a server / client combination.
    */
   private createStorageKey(serverUrl: string, clientId: string): string {
-    return 'jsOnFhir' + Base64.stringify(serverUrl + clientId);
+    return 'jsOnFhir' + sjcl.codec.base64.fromBits(sjcl.codec.utf8String.toBits(serverUrl + clientId));
   }
 
   /**
