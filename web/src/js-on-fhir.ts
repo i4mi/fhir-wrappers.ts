@@ -546,7 +546,10 @@ export class JSOnFhir {
         jsonEncoded: typeof payload !== 'string'
       })
         .then((response) => {
-          resolve(JSON.parse(response.body) as Resource);
+          resolve(typeof response === 'string'
+              ? JSON.parse(response).body
+              : response.body
+          );
         })
         .catch((error) => {
           reject(new Error(error.status + ' ' + error.message));
