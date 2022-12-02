@@ -357,12 +357,13 @@ Create a new issue with the label ![][~web].
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
 - The (undocumented) generateRandomState(length) method is no longer available. If you used it to create a prefilled registering link, you can instead use the authenticate() method and pass the prefilled fields as key/value pair.
 - Version 2.0.0 of `@i4mi/fhir_r4` is used, which has incompabilities to previous versions. You may have to update your project to Version 2.0.0 of `@i4mi/fhir_r4` when using TypeScript.
+- PKCE Code Challenge is used per default for the auth, which may cause problems if your server does not support PKCE. You can disable this behaviour by setting `disablePKCE` the option objects of the constructor to `true` (see [chapter 1.2.3](#1.2-import))
 - TODO: other breaking changes?
 - TODO: update release date in change log
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension. <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
+| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension.<br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
 | 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
 | 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|

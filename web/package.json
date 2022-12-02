@@ -1,12 +1,13 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "1.0.0-alpha.8",
+    "version": "1.0.0-beta8",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
     "main": "js-on-fhir/index.js",
+    "type": "module",
     "scripts": {
-        "clean": "rm -rf _bundles js-on-fhir js-on-fhir-esm",
-        "build": "npm run clean && tsc && tsc -m es6 --outDir js-on-fhir-esm",
-        "build:copy": "npm run clean && tsc && tsc -m es6 --outDir js-on-fhir-esm && cp -R js-on-fhir"
+        "clean": "rm -rf js-on-fhir",
+        "build": "npm run clean && tsc",
+        "build:copy": "npm run clean && tsc && cp -R js-on-fhir"
     },
     "dependencies": {
         "@i4mi/fhir_r4": "^2.0.0",

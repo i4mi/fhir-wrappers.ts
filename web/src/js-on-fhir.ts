@@ -638,7 +638,7 @@ export class JSOnFhir {
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
   private generateCodeChallenge(codeVerifier: string): string {
-    return (sjcl.hash.sha256.hash(codeVerifier))
+    return sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(codeVerifier))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
