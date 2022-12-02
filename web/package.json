@@ -1,8 +1,8 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "1.0.0-beta.9",
+    "version": "1.0.0-beta.11",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
-    "main": "js-on-fhir/index.js",
+    "main": "js-on-fhir/js-on-fhir.js",
     "type": "module",
     "scripts": {
         "clean": "rm -rf js-on-fhir",
