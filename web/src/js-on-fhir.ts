@@ -738,7 +738,7 @@ export class JSOnFhir {
    * Helper function for creating a storage key that is unique for a server / client combination.
    */
   private createStorageKey(serverUrl: string, clientId: string): string {
-    return forge.util.encode64(forge.util.decodeUtf8(serverUrl + clientId));
+    return forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(serverUrl + clientId)));
   }
 
   /**
