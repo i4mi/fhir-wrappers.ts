@@ -1,5 +1,5 @@
 import { apiCall, HttpMethod, ApiMethods, ApiConfig, ApiCallResponse, Resource, Bundle } from '@i4mi/fhir_r4';
-import sjcl from 'sjcl';
+import sjcl from './sjcl/sjcl.js';
 import cryptoRandomString from 'crypto-random-string';
 
 /**
