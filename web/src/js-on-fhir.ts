@@ -1,7 +1,5 @@
 import { apiCall, HttpMethod, ApiMethods, ApiConfig, ApiCallResponse, Resource, Bundle } from '@i4mi/fhir_r4';
-import sjcl from './sjcl/sjcl.js';
-import cryptoRandomString from 'crypto-random-string';
-
+import forge from 'node-forge';
 /**
  * A response to successful oauth request
  * ACCORDING http://www.hl7.org/fhir/smart-app-launch/index.html
@@ -620,7 +618,9 @@ export class JSOnFhir {
    * @returns state (url-safe) with a length of 128 characters.
    */
   generateState(): string {
-    return cryptoRandomString({ length: 128, type: 'url-safe' });
+    return encodeURIComponent(forge.util.encode64(forge.random.getBytesSync(128)))
+    .replace(/%/g, '')
+    .substring(0,128);
   }
 
   /**
@@ -631,7 +631,9 @@ export class JSOnFhir {
    * @returns code verifier (url-safe) with a length of 128 characters.
    */
   private generateCodeVerifier(): string {
-    return cryptoRandomString({ length: 128, type: 'url-safe' });
+    return encodeURIComponent(forge.util.encode64(forge.random.getBytesSync(128)))
+    .replace(/%/g, '')
+    .substring(0,128);
   }
 
   /**
@@ -641,7 +643,9 @@ export class JSOnFhir {
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
   private generateCodeChallenge(codeVerifier: string): string {
-    return sjcl.codec.base64.fromBits(sjcl.hash.sha256.hash(codeVerifier))
+    return forge.util.encode64(forge.util.hexToBytes(forge.md.sha256.create().update(forge.util.decodeUtf8(codeVerifier))
+      .digest()
+      .toHex()))
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
@@ -734,7 +738,7 @@ export class JSOnFhir {
    * Helper function for creating a storage key that is unique for a server / client combination.
    */
   private createStorageKey(serverUrl: string, clientId: string): string {
-    return 'jsOnFhir' + sjcl.codec.base64.fromBits(sjcl.codec.utf8String.toBits(serverUrl + clientId));
+    return forge.util.encode64(forge.util.decodeUtf8(serverUrl + clientId));
   }
 
   /**
