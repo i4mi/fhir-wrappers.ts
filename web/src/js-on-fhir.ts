@@ -23,35 +23,81 @@ export enum FHIR_VERSION {
   'R5' = '5.0.0'
 };
 
+interface StorageObject {
+  urls: {
+    service: string;
+    conformance: string;
+    auth: string;
+    redirect: string;
+    token: string;
+  },
+  auth: {
+    accessToken: string;
+    expires: number
+    type: string;
+    refreshToken: string;
+  };
+  settings: {
+    client: string;
+    userId: string;
+    scope: string;
+    state: string;
+    language: string;
+    supportedResourceTypes: string[];
+    fhirVersion: FHIR_VERSION;
+    responseType: string;
+    noAuth: boolean;
+    noPkce: boolean;
+    codeVerifier: string;
+    codeChallenge: string;
+  };
+}
+
+const DEFAULT_SETTINGS: StorageObject = {
+  urls: {
+      service: '',
+      conformance: '',
+      auth: '',
+      redirect: '',
+      token: ''
+    },
+  settings: {
+      client: '',
+      userId: '',
+      scope: '',
+      state: '',
+      language: '',
+      supportedResourceTypes: new Array<string>(),
+      fhirVersion: FHIR_VERSION.R4,
+      responseType: 'code',
+      noAuth: false,
+      noPkce: false,
+      codeVerifier: '',
+      codeChallenge: ''
+    },
+    auth: {
+      accessToken: '',
+      expires: 0,
+      type: '',
+      refreshToken: ''   
+    }
+}
+
 export class JSOnFhir {
+  private iife = (() => {
+    var jsonfhir: StorageObject;
+
+    return {
+      set: (store: StorageObject) => {
+        jsonfhir = store
+      },
+      get: () => {
+        return jsonfhir;
+      }
+    }
+  })();
+
   private apiMethods = new ApiMethods();
-  private urls = {
-    service: '',
-    conformance: '',
-    auth: '',
-    redirect: '',
-    token: ''
-  };
-  private settings = {
-    client: '',
-    userId: '',
-    scope: '',
-    state: '',
-    language: '',
-    supportedResourceTypes: new Array<string>(),
-    fhirVersion: FHIR_VERSION.R4,
-    responseType: 'code',
-    noAuth: false,
-    noPkce: false,
-    codeVerifier: '',
-    codeChallenge: ''
-  };
-  private auth = {
-    accessToken: '',
-    expires: 0,
-    type: '',
-    refreshToken: ''
-  };
   private storageKey: string;
 
   /**
@@ -74,9 +120,13 @@ export class JSOnFhir {
    *                                  Possibilities: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
    */
   constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: FHIR_VERSION }) {
-    this.storageKey = this.createStorageKey(serverUrl, clientId);
+    const storageKey = this.createStorageKey(serverUrl, clientId);
     if (!options) {
-      options = { doesNotNeedAuth: false, disablePkce: false, fhirVersion: FHIR_VERSION.R4 };
+      options = { 
+        doesNotNeedAuth: false, 
+        disablePkce: false, 
+        fhirVersion: FHIR_VERSION.R4 
+      };
     } else if (options) {
       if (typeof options.doesNotNeedAuth === 'undefined') {
         options.doesNotNeedAuth = false;
@@ -86,32 +136,31 @@ export class JSOnFhir {
       }
     }
     // Check if there is a jsOnFhir object in sessionStorage.
-    const persisted = JSON.parse(sessionStorage.getItem(this.storageKey));
-    if (persisted != null) {
-      if (persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId) {
-        // Assign prototype to the object loaded from storage, so it becomes
-        // a full JSOnFhir object with functions.
-        persisted.__proto__ = JSOnFhir.prototype;
-        persisted.apiMethods = new ApiMethods();
-        return persisted;
-      }
+    let persisted = this.getFromStorage(storageKey);
+
+    if (!persisted || !(persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId)) {
+      persisted = DEFAULT_SETTINGS;
+        // If no JSOnFhir object could be loaded from sessionStorage, or if it has different parameters
+        // we assign the URLs and settings properties and save it to the sessionStorage.
+        persisted.urls.service = serverUrl + '/fhir';
+        persisted.urls.conformance = serverUrl + '/fhir/metadata';
+        persisted.urls.redirect = redirectUrl;
+        persisted.settings.client = clientId;
+        persisted.settings.scope = 'user/*.*';
+        persisted.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
+        persisted.settings.noPkce = options.disablePkce ? options.disablePkce : false;
     }
-    // If no JSOnFhir object could be loaded from sessionStorage, or if it has different parameters
-    // we assign the URLs and settings properties and save it to the sessionStorage.
-    this.urls.service = serverUrl + '/fhir';
-    this.urls.conformance = serverUrl + '/fhir/metadata';
-    this.urls.redirect = redirectUrl;
-    this.settings.client = clientId;
-    this.settings.scope = 'user/*.*';
-    this.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
-    this.settings.noPkce = options.disablePkce ? options.disablePkce : false;
+
     if (options.fhirVersion) {
-      this.settings.fhirVersion = options.fhirVersion;
+      persisted.settings.fhirVersion = options.fhirVersion;
       this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + options.fhirVersion); 
     } else {
-      this.settings.fhirVersion = FHIR_VERSION.R4;
+      persisted.settings.fhirVersion = FHIR_VERSION.R4;
     }
-    this.persistMe();
+
+    this.iife.set(persisted);
+    this.storageKey = storageKey;
+    this.persist(storageKey);
   }
 
   /**
@@ -124,40 +173,40 @@ export class JSOnFhir {
    * @throws        An Error if the conformance statement could not be fetched from the server.
    */
   authenticate(params?: {[key: string]: string}): void {
-    if (this.settings.noAuth) {
+    if (this.iife.get().settings.noAuth) {
       return;
     }
     // If PKCE isn't disabled, creates a code verifier and code challenge
     // based on the former according to rfc7636 section 4.1.
-    if (!this.settings.noPkce) {
-      this.settings.codeVerifier = this.generateCodeVerifier();
-      this.settings.codeChallenge = this.generateCodeChallenge(this.settings.codeVerifier);
+    if (!this.iife.get().settings.noPkce) {
+      this.iife.get().settings.codeVerifier = this.generateCodeVerifier();
+      this.iife.get().settings.codeChallenge = this.generateCodeChallenge(this.iife.get().settings.codeVerifier);
     }
     // Creates an opaque value used by the client to maintain state between the request and callback.
-    this.settings.state = this.generateState();
+    this.iife.get().settings.state = this.generateState();
     // Fetching of the auth and token URL.
     this.fetchConformanceStatement()
       .then(() => {
         // Build the authorization request according to rfc6749 section 4.1.1.
         let authUrl =
-          this.urls.auth +
+          this.iife.get().urls.auth +
           '?response_type=' +
-          this.settings.responseType +
+          this.iife.get().settings.responseType +
           '&client_id=' +
-          encodeURIComponent(this.settings.client) +
+          encodeURIComponent(this.iife.get().settings.client) +
           '&scope=' +
-          encodeURIComponent(this.settings.scope) +
+          encodeURIComponent(this.iife.get().settings.scope) +
           '&redirect_uri=' +
-          encodeURIComponent(this.urls.redirect) +
+          encodeURIComponent(this.iife.get().urls.redirect) +
           '&state=' +
-          this.settings.state;
+          this.iife.get().settings.state;
         // If PKCE isn't disabled, appends the code challenge to the authorization request according to rfc7636 section 4.3.
-        if (!this.settings.noPkce) {
-          authUrl += '&code_challenge=' + this.settings.codeChallenge + '&code_challenge_method=S256';
+        if (!this.iife.get().settings.noPkce) {
+          authUrl += '&code_challenge=' + this.iife.get().settings.codeChallenge + '&code_challenge_method=S256';
         }
         // If language exists and is set in settings property, sets the language to be used on the login page.
-        if (this.settings.language.length === 2) {
-          authUrl += '&language=' + encodeURIComponent(this.settings.language);
+        if (this.iife.get().settings.language.length === 2) {
+          authUrl += '&language=' + encodeURIComponent(this.iife.get().settings.language);
         }
         // Append parameter(s) if they exist.
         if (params) {
@@ -206,7 +255,7 @@ export class JSOnFhir {
         this.tokenRequest(state, authCode)
           .then((response: AuthResponse) => {
             // Resets the URL so that we don't run into misinterpreting the same code later again.
-            history.pushState({}, null, this.urls.redirect);
+            history.pushState({}, null, this.iife.get().urls.redirect);
             resolve(response);
           })
           .catch((error) => {
@@ -233,22 +282,22 @@ export class JSOnFhir {
   private tokenRequest(state: string, authCode: string): Promise<AuthResponse> {
     return new Promise((resolve, reject) => {
       // Check if local state and the server's response state are the same.
-      if (this.settings.state === state) {
+      if (this.iife.get().settings.state === state) {
         let data =
           'grant_type=authorization_code' +
           '&redirect_uri=' +
-          encodeURIComponent(this.urls.redirect) +
+          encodeURIComponent(this.iife.get().urls.redirect) +
           '&client_id=' +
-          encodeURIComponent(this.settings.client) +
+          encodeURIComponent(this.iife.get().settings.client) +
           '&code=' +
           authCode;
         // If PKCE isn't disabled, append the code verifier to the data string.
-        if (!this.settings.noPkce) {
-          data += '&code_verifier=' + this.settings.codeVerifier;
+        if (!this.iife.get().settings.noPkce) {
+          data += '&code_verifier=' + this.iife.get().settings.codeVerifier;
         }
         // Make request to the token endpoint using apiCall function from @i4mi/fhir_r4.
         apiCall({
-          url: this.urls.token,
+          url: this.iife.get().urls.token,
           method: HttpMethod.POST,
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
@@ -282,20 +331,20 @@ export class JSOnFhir {
   refreshAuth(refreshToken: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // Resolve promise if doesNotNeedAuth? was set to true in the constructor.
-      if (this.settings.noAuth) {
+      if (this.iife.get().settings.noAuth) {
         Promise.resolve();
       }
       // Check that the provided refreshToken is valid.
       if (refreshToken && refreshToken !== '') {
         // Make request to the token endpoint.
         apiCall({
-          url: this.urls.token,
+          url: this.iife.get().urls.token,
           method: HttpMethod.POST,
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded',
           },
           jsonBody: true,
-          payload: 'grant_type=refresh_token&refresh_token=' + this.auth.refreshToken,
+          payload: 'grant_type=refresh_token&refresh_token=' + this.iife.get().auth.refreshToken,
           jsonEncoded: false,
         }).then((response: ApiCallResponse) => {
           if (response.status === 200) {
@@ -320,27 +369,27 @@ export class JSOnFhir {
    *                      false when doesNotNeedAuth? was set true in the constructor.
    */
   isLoggedIn(): boolean {
-    return this.auth.accessToken !== '' && this.auth.expires > Date.now();
+    return this.iife.get().auth.accessToken !== '' && this.iife.get().auth.expires > Date.now();
   }
 
   /**
    * Logs out the user by deleting certain settings and permission properties.
    */
   logout(): void {
-    this.settings = {
-      ...this.settings,
+    this.iife.get().settings = {
+      ...this.iife.get().settings,
       userId: '',
       codeVerifier: '',
       codeChallenge: '',
       state: ''
     };
-    this.auth = {
+    this.iife.get().auth = {
       accessToken: '',
       expires: 0,
       type: '',
       refreshToken: ''
     };
-    this.persistMe();
+    this.persist(this.storageKey);
   }
 
   /**
@@ -349,9 +398,9 @@ export class JSOnFhir {
    */
   private getApiConfig(): ApiConfig {
     return {
-      access_token: this.auth.accessToken,
-      authorization_type: this.auth.type,
-      base_url: this.urls.service
+      access_token: this.iife.get().auth.accessToken,
+      authorization_type: this.iife.get().auth.type,
+      base_url: this.iife.get().urls.service
     };
   }
 
@@ -365,7 +414,7 @@ export class JSOnFhir {
   create(resource: Resource | string): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Create a resource on the fhir server by calling the create() function of apiMethods.
@@ -393,7 +442,7 @@ export class JSOnFhir {
   update(resource: Resource): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Reject promise if resource ID is undefined.
@@ -424,14 +473,14 @@ export class JSOnFhir {
    *            - rejected:   Error message.
    */
   search(resourceType: string, params?: {[key: string]: string}): Promise<Bundle> {
-    if (this.settings.supportedResourceTypes.findIndex(r => r === resourceType) === -1) {
+    if (this.iife.get().settings.supportedResourceTypes.findIndex(r => r === resourceType) === -1) {
       return Promise.reject(
         'ResourceType "' + resourceType + '" is not supported by this server.'
         + (resourceType.includes('/') ? ' For directly fetching a resource use getResource().' : ''));
     }
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
@@ -460,7 +509,7 @@ export class JSOnFhir {
   getResource(resourceType: string, id: string): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
@@ -500,7 +549,7 @@ export class JSOnFhir {
   ): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Reject promise if resourceInstance (resourceId) but no resourceType is provided.
@@ -531,11 +580,11 @@ export class JSOnFhir {
         : '';
       // Perform operation on fhir server by using apiCall function from @i4mi/fhir_r4.
       apiCall({
-        url: this.urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
+        url: this.iife.get().urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
         method: httpMethod,
         headers: {
-          'Content-Type': 'application/fhir+json;' + ((this.settings.fhirVersion && this.settings.fhirVersion.length > 0)
-                                                        ? ' fhirVersion=' + this.settings.fhirVersion
+          'Content-Type': 'application/fhir+json;' + ((this.iife.get().settings.fhirVersion && this.iife.get().settings.fhirVersion.length > 0)
+                                                        ? ' fhirVersion=' + this.iife.get().settings.fhirVersion
                                                         : ''),
           'Authorization': 'Bearer ' + this.getAccessToken()
         },
@@ -561,8 +610,8 @@ export class JSOnFhir {
    */
   setLanguage(lang: string): void {
     if (lang.length === 2) {
-      this.settings.language = lang.toLowerCase();
-      this.persistMe();
+      this.iife.get().settings.language = lang.toLowerCase();
+      this.persist(this.storageKey);
     } else {
       throw new Error('The supplied language code is not a two-char string.');
     }
@@ -573,8 +622,8 @@ export class JSOnFhir {
    * @param conformanceUrl The new conformance statement URL.
    */
   setConformanceUrl(conformanceUrl: string): void {
-    this.urls.conformance = conformanceUrl;
-    this.persistMe();
+    this.iife.get().urls.conformance = conformanceUrl;
+    this.persist(this.storageKey);
   }
 
   /**
@@ -582,8 +631,8 @@ export class JSOnFhir {
    * @param scope The scope as string.
    */
   setScope(scope: string): void {
-    this.settings.scope = scope;
-    this.persistMe();
+    this.iife.get().settings.scope = scope;
+    this.persist(this.storageKey);
   }
 
   /**
@@ -604,8 +653,8 @@ export class JSOnFhir {
   *               undefined if not logged in
   */
   getUserId() {
-    if(this.settings.userId && this.settings.userId !== ''){
-      return this.settings.userId;
+    if(this.iife.get().settings.userId && this.iife.get().settings.userId !== ''){
+      return this.iife.get().settings.userId;
     } else {
       return undefined;
     }
@@ -661,13 +710,13 @@ export class JSOnFhir {
   private fetchConformanceStatement(): Promise<ApiCallResponse> {
     return new Promise((resolve, reject) => {
       // Set the conformance endpoint URL.
-      const cfUrl = typeof this.urls.conformance !== 'undefined' ? this.urls.conformance : this.urls.service + '/metadata';
+      const cfUrl = typeof this.iife.get().urls.conformance !== 'undefined' ? this.iife.get().urls.conformance : this.iife.get().urls.service + '/metadata';
       // Make request to the conformance endpoint using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: cfUrl,
         headers: {
-          'Content-Type': 'application/fhir+json;' + ((this.settings.fhirVersion && this.settings.fhirVersion.length > 0)
-                                                        ? ' fhirVersion=' + this.settings.fhirVersion
+          'Content-Type': 'application/fhir+json;' + ((this.iife.get().settings.fhirVersion && this.iife.get().settings.fhirVersion.length > 0)
+                                                        ? ' fhirVersion=' + this.iife.get().settings.fhirVersion
                                                         : '')
         },
         method: HttpMethod.GET
@@ -692,8 +741,8 @@ export class JSOnFhir {
    * @returns access Token
    */
   getAccessToken(): string {
-    return this.auth && this.auth.accessToken
-      ? this.auth.accessToken
+    return this.iife.get().auth && this.iife.get().auth.accessToken
+      ? this.iife.get().auth.accessToken
       : undefined;
   }
 
@@ -704,7 +753,7 @@ export class JSOnFhir {
    *                Supported versions: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
    */
   changeFhirVersion(version: FHIR_VERSION): void {
-    this.settings.fhirVersion = version;
+    this.iife.get().settings.fhirVersion = version;
     this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + version); 
   }
 
@@ -714,11 +763,11 @@ export class JSOnFhir {
    */
   private handleConformanceStatementResponse(response: ApiCallResponse): void {
     response.body = JSON.parse(response.body);
-    this.urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
-    this.urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
-    this.settings.supportedResourceTypes = response.body.rest['0'].resource.map(r => r.type);
-    this.settings.fhirVersion = response.body.fhirVersion;
-    this.persistMe();
+    this.iife.get().urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
+    this.iife.get().urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
+    this.iife.get().settings.supportedResourceTypes = response.body.rest['0'].resource.map(r => r.type);
+    this.iife.get().settings.fhirVersion = response.body.fhirVersion;
+    this.persist(this.storageKey);
   }
 
   /**
@@ -726,12 +775,12 @@ export class JSOnFhir {
    * @param response Response of the access token request.
    */
   private handleTokenResponse(response: ApiCallResponse) {
-    this.auth.accessToken = response.body.access_token;
-    this.auth.expires = Date.now() + 1000 * response.body.expires_in;
-    this.auth.type = response.body.token_type;
-    this.auth.refreshToken = response.body.refresh_token;
-    this.settings.userId = response.body.patient;
-    this.persistMe();
+    this.iife.get().auth.accessToken = response.body.access_token;
+    this.iife.get().auth.expires = Date.now() + 1000 * response.body.expires_in;
+    this.iife.get().auth.type = response.body.token_type;
+    this.iife.get().auth.refreshToken = response.body.refresh_token;
+    this.iife.get().settings.userId = response.body.patient;
+    this.persist(this.storageKey);
   }
 
   /**
@@ -745,8 +794,30 @@ export class JSOnFhir {
    * Helper function that saves the JSOnFhir object to sessionStorage. It is used to restore
    * the JSOnFhir object after a page reload (e.g. after the authenticate() function was called).
    */
-  private persistMe(): void {
-    sessionStorage.setItem(this.storageKey, JSON.stringify(this));
+  private persist(key: string): void {
+    console.log(this.iife)
+    if(!key) throw new Error('Can not persist without key');
+    const toStore: StorageObject = this.iife.get()
+    console.log('toStore', toStore);
+    const base64 = forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))));
+    console.log('persist, saved '
+     + (JSON.stringify(toStore).length - base64.length) 
+     + ' characters by using base64 ('
+     + (Math.round(100 * (JSON.stringify(toStore).length - base64.length) / base64.length)) + '%)'
+     )
+     console.log(JSON.stringify(toStore), JSON.stringify(toStore).length)
+     console.log(base64, base64.length)
+    sessionStorage.setItem(
+      key,
+      forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))))
+    );
+  }
+
+  private getFromStorage(key: string): StorageObject | null {
+    const fromStorage = sessionStorage.getItem(key);
+    return fromStorage
+      ? JSON.parse(decodeURIComponent(forge.util.encodeUtf8(forge.util.decode64(fromStorage)))) as StorageObject
+      : null;
   }
 
   /**
