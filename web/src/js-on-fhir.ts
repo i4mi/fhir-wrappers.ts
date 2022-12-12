@@ -795,18 +795,8 @@ export class JSOnFhir {
    * the JSOnFhir object after a page reload (e.g. after the authenticate() function was called).
    */
   private persist(key: string): void {
-    console.log(this.iife)
     if(!key) throw new Error('Can not persist without key');
     const toStore: StorageObject = this.iife.get()
-    console.log('toStore', toStore);
-    const base64 = forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))));
-    console.log('persist, saved '
-     + (JSON.stringify(toStore).length - base64.length) 
-     + ' characters by using base64 ('
-     + (Math.round(100 * (JSON.stringify(toStore).length - base64.length) / base64.length)) + '%)'
-     )
-     console.log(JSON.stringify(toStore), JSON.stringify(toStore).length)
-     console.log(base64, base64.length)
     sessionStorage.setItem(
       key,
       forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))))
