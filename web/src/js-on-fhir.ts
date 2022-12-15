@@ -5,15 +5,15 @@ import forge from 'node-forge';
  * ACCORDING http://www.hl7.org/fhir/smart-app-launch/index.html
  */
 export interface AuthResponse {
-    state: string;        // if everyting ok --> none
-    access_token: string; // The access token issued by the authorization server
-    token_type: 'Bearer'; // Fixed value: Bearer
-    expires_in: number;   // Lifetime of the access token in seconds, after which the token SHALL NOT be accepted by the resource server
-    scope: string;        // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
-    id_token?: string;    // Authenticated patient identity and user details, if requested
-    patient: string;      // field name for user id defined by SMART on FHIR
-    refresh_token: string;// Token that can be used to obtain a new access token,
-                          // using the same or a subset of the original authorization grants
+  state: string;        // if everyting ok --> none
+  access_token: string; // The access token issued by the authorization server
+  token_type: 'Bearer'; // Fixed value: Bearer
+  expires_in: number;   // Lifetime of the access token in seconds, after which the token SHALL NOT be accepted by the resource server
+  scope: string;        // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
+  id_token?: string;    // Authenticated patient identity and user details, if requested
+  patient: string;      // field name for user id defined by SMART on FHIR
+  refresh_token: string;// Token that can be used to obtain a new access token,
+                        // using the same or a subset of the original authorization grants
 }
 
 export enum FHIR_VERSION {
@@ -21,7 +21,7 @@ export enum FHIR_VERSION {
   'R4' = '4.0.1',
   'R4B' = '4.3.0',
   'R5' = '5.0.0'
-};
+}
 
 interface StorageObject {
   urls: {
@@ -30,10 +30,10 @@ interface StorageObject {
     auth: string;
     redirect: string;
     token: string;
-  },
+  };
   auth: {
     accessToken: string;
-    expires: number
+    expires: number;
     type: string;
     refreshToken: string;
   };
@@ -55,46 +55,46 @@ interface StorageObject {
 
 const DEFAULT_SETTINGS: StorageObject = {
   urls: {
-      service: '',
-      conformance: '',
-      auth: '',
-      redirect: '',
-      token: ''
-    },
+    service: '',
+    conformance: '',
+    auth: '',
+    redirect: '',
+    token: ''
+  },
   settings: {
-      client: '',
-      userId: '',
-      scope: '',
-      state: '',
-      language: '',
-      supportedResourceTypes: new Array<string>(),
-      fhirVersion: FHIR_VERSION.R4,
-      responseType: 'code',
-      noAuth: false,
-      noPkce: false,
-      codeVerifier: '',
-      codeChallenge: ''
-    },
-    auth: {
-      accessToken: '',
-      expires: 0,
-      type: '',
-      refreshToken: ''   
-    }
-}
+    client: '',
+    userId: '',
+    scope: '',
+    state: '',
+    language: '',
+    supportedResourceTypes: new Array<string>(),
+    fhirVersion: FHIR_VERSION.R4,
+    responseType: 'code',
+    noAuth: false,
+    noPkce: false,
+    codeVerifier: '',
+    codeChallenge: ''
+  },
+  auth: {
+    accessToken: '',
+    expires: 0,
+    type: '',
+    refreshToken: ''
+  }
+};
 
 export class JSOnFhir {
   private iife = (() => {
     var jsonfhir: StorageObject;
 
     return {
-      set: (store: StorageObject) => {
-        jsonfhir = store
+      initialize: (store: StorageObject) => {
+        jsonfhir = store;
       },
-      get: () => {
+      jsOnFhir: () => {
         return jsonfhir;
       }
-    }
+    };
   })();
 
   private apiMethods = new ApiMethods();
@@ -119,13 +119,18 @@ export class JSOnFhir {
    *                                  Defaults to R4 / 4.0.1.
    *                                  Possibilities: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
    */
-  constructor(serverUrl: string, clientId: string, redirectUrl: string, options?: { doesNotNeedAuth?: boolean; disablePkce?: boolean, fhirVersion?: FHIR_VERSION }) {
+  constructor(
+    serverUrl: string,
+    clientId: string,
+    redirectUrl: string,
+    options?: {doesNotNeedAuth?: boolean; disablePkce?: boolean; fhirVersion?: FHIR_VERSION}
+  ) {
     const storageKey = this.createStorageKey(serverUrl, clientId);
     if (!options) {
-      options = { 
-        doesNotNeedAuth: false, 
-        disablePkce: false, 
-        fhirVersion: FHIR_VERSION.R4 
+      options = {
+        doesNotNeedAuth: false,
+        disablePkce: false,
+        fhirVersion: FHIR_VERSION.R4
       };
     } else if (options) {
       if (typeof options.doesNotNeedAuth === 'undefined') {
@@ -138,27 +143,34 @@ export class JSOnFhir {
     // Check if there is a jsOnFhir object in sessionStorage.
     let persisted = this.getFromStorage(storageKey);
 
-    if (!persisted || !(persisted.urls.redirect === redirectUrl && persisted.urls.service === serverUrl + '/fhir' && persisted.settings.client === clientId)) {
+    if (
+      !persisted ||
+      !(
+        persisted.urls.redirect === redirectUrl &&
+        persisted.urls.service === serverUrl + '/fhir' &&
+        persisted.settings.client === clientId
+      )
+    ) {
       persisted = DEFAULT_SETTINGS;
-        // If no JSOnFhir object could be loaded from sessionStorage, or if it has different parameters
-        // we assign the URLs and settings properties and save it to the sessionStorage.
-        persisted.urls.service = serverUrl + '/fhir';
-        persisted.urls.conformance = serverUrl + '/fhir/metadata';
-        persisted.urls.redirect = redirectUrl;
-        persisted.settings.client = clientId;
-        persisted.settings.scope = 'user/*.*';
-        persisted.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
-        persisted.settings.noPkce = options.disablePkce ? options.disablePkce : false;
+      // If no JSOnFhir object could be loaded from sessionStorage, or if it has different parameters
+      // we assign the URLs and settings properties and save it to the sessionStorage.
+      persisted.urls.service = serverUrl + '/fhir';
+      persisted.urls.conformance = serverUrl + '/fhir/metadata';
+      persisted.urls.redirect = redirectUrl;
+      persisted.settings.client = clientId;
+      persisted.settings.scope = 'user/*.*';
+      persisted.settings.noAuth = options.doesNotNeedAuth ? options.doesNotNeedAuth : false;
+      persisted.settings.noPkce = options.disablePkce ? options.disablePkce : false;
     }
 
     if (options.fhirVersion) {
       persisted.settings.fhirVersion = options.fhirVersion;
-      this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + options.fhirVersion); 
+      this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + options.fhirVersion);
     } else {
       persisted.settings.fhirVersion = FHIR_VERSION.R4;
     }
 
-    this.iife.set(persisted);
+    this.iife.initialize(persisted);
     this.storageKey = storageKey;
     this.persist(storageKey);
   }
@@ -173,40 +185,42 @@ export class JSOnFhir {
    * @throws        An Error if the conformance statement could not be fetched from the server.
    */
   authenticate(params?: {[key: string]: string}): void {
-    if (this.iife.get().settings.noAuth) {
+    if (this.iife.jsOnFhir().settings.noAuth) {
       return;
     }
     // If PKCE isn't disabled, creates a code verifier and code challenge
     // based on the former according to rfc7636 section 4.1.
-    if (!this.iife.get().settings.noPkce) {
-      this.iife.get().settings.codeVerifier = this.generateCodeVerifier();
-      this.iife.get().settings.codeChallenge = this.generateCodeChallenge(this.iife.get().settings.codeVerifier);
+    if (!this.iife.jsOnFhir().settings.noPkce) {
+      this.iife.jsOnFhir().settings.codeVerifier = this.generateCodeVerifier();
+      this.iife.jsOnFhir().settings.codeChallenge = this.generateCodeChallenge(
+        this.iife.jsOnFhir().settings.codeVerifier
+      );
     }
     // Creates an opaque value used by the client to maintain state between the request and callback.
-    this.iife.get().settings.state = this.generateState();
+    this.iife.jsOnFhir().settings.state = this.generateState();
     // Fetching of the auth and token URL.
     this.fetchConformanceStatement()
       .then(() => {
         // Build the authorization request according to rfc6749 section 4.1.1.
         let authUrl =
-          this.iife.get().urls.auth +
+          this.iife.jsOnFhir().urls.auth +
           '?response_type=' +
-          this.iife.get().settings.responseType +
+          this.iife.jsOnFhir().settings.responseType +
           '&client_id=' +
-          encodeURIComponent(this.iife.get().settings.client) +
+          encodeURIComponent(this.iife.jsOnFhir().settings.client) +
           '&scope=' +
-          encodeURIComponent(this.iife.get().settings.scope) +
+          encodeURIComponent(this.iife.jsOnFhir().settings.scope) +
           '&redirect_uri=' +
-          encodeURIComponent(this.iife.get().urls.redirect) +
+          encodeURIComponent(this.iife.jsOnFhir().urls.redirect) +
           '&state=' +
-          this.iife.get().settings.state;
+          this.iife.jsOnFhir().settings.state;
         // If PKCE isn't disabled, appends the code challenge to the authorization request according to rfc7636 section 4.3.
-        if (!this.iife.get().settings.noPkce) {
-          authUrl += '&code_challenge=' + this.iife.get().settings.codeChallenge + '&code_challenge_method=S256';
+        if (!this.iife.jsOnFhir().settings.noPkce) {
+          authUrl += '&code_challenge=' + this.iife.jsOnFhir().settings.codeChallenge + '&code_challenge_method=S256';
         }
         // If language exists and is set in settings property, sets the language to be used on the login page.
-        if (this.iife.get().settings.language.length === 2) {
-          authUrl += '&language=' + encodeURIComponent(this.iife.get().settings.language);
+        if (this.iife.jsOnFhir().settings.language.length === 2) {
+          authUrl += '&language=' + encodeURIComponent(this.iife.jsOnFhir().settings.language);
         }
         // Append parameter(s) if they exist.
         if (params) {
@@ -255,7 +269,7 @@ export class JSOnFhir {
         this.tokenRequest(state, authCode)
           .then((response: AuthResponse) => {
             // Resets the URL so that we don't run into misinterpreting the same code later again.
-            history.pushState({}, null, this.iife.get().urls.redirect);
+            history.pushState({}, null, this.iife.jsOnFhir().urls.redirect);
             resolve(response);
           })
           .catch((error) => {
@@ -282,29 +296,29 @@ export class JSOnFhir {
   private tokenRequest(state: string, authCode: string): Promise<AuthResponse> {
     return new Promise((resolve, reject) => {
       // Check if local state and the server's response state are the same.
-      if (this.iife.get().settings.state === state) {
+      if (this.iife.jsOnFhir().settings.state === state) {
         let data =
           'grant_type=authorization_code' +
           '&redirect_uri=' +
-          encodeURIComponent(this.iife.get().urls.redirect) +
+          encodeURIComponent(this.iife.jsOnFhir().urls.redirect) +
           '&client_id=' +
-          encodeURIComponent(this.iife.get().settings.client) +
+          encodeURIComponent(this.iife.jsOnFhir().settings.client) +
           '&code=' +
           authCode;
         // If PKCE isn't disabled, append the code verifier to the data string.
-        if (!this.iife.get().settings.noPkce) {
-          data += '&code_verifier=' + this.iife.get().settings.codeVerifier;
+        if (!this.iife.jsOnFhir().settings.noPkce) {
+          data += '&code_verifier=' + this.iife.jsOnFhir().settings.codeVerifier;
         }
         // Make request to the token endpoint using apiCall function from @i4mi/fhir_r4.
         apiCall({
-          url: this.iife.get().urls.token,
+          url: this.iife.jsOnFhir().urls.token,
           method: HttpMethod.POST,
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           jsonBody: true,
           payload: data,
-          jsonEncoded: false,
+          jsonEncoded: false
         }).then((response) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
@@ -331,21 +345,21 @@ export class JSOnFhir {
   refreshAuth(refreshToken: string): Promise<any> {
     return new Promise((resolve, reject) => {
       // Resolve promise if doesNotNeedAuth? was set to true in the constructor.
-      if (this.iife.get().settings.noAuth) {
+      if (this.iife.jsOnFhir().settings.noAuth) {
         Promise.resolve();
       }
       // Check that the provided refreshToken is valid.
       if (refreshToken && refreshToken !== '') {
         // Make request to the token endpoint.
         apiCall({
-          url: this.iife.get().urls.token,
+          url: this.iife.jsOnFhir().urls.token,
           method: HttpMethod.POST,
           headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/x-www-form-urlencoded'
           },
           jsonBody: true,
-          payload: 'grant_type=refresh_token&refresh_token=' + this.iife.get().auth.refreshToken,
-          jsonEncoded: false,
+          payload: 'grant_type=refresh_token&refresh_token=' + this.iife.jsOnFhir().auth.refreshToken,
+          jsonEncoded: false
         }).then((response: ApiCallResponse) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
@@ -369,21 +383,21 @@ export class JSOnFhir {
    *                      false when doesNotNeedAuth? was set true in the constructor.
    */
   isLoggedIn(): boolean {
-    return this.iife.get().auth.accessToken !== '' && this.iife.get().auth.expires > Date.now();
+    return this.iife.jsOnFhir().auth.accessToken !== '' && this.iife.jsOnFhir().auth.expires > Date.now();
   }
 
   /**
    * Logs out the user by deleting certain settings and permission properties.
    */
   logout(): void {
-    this.iife.get().settings = {
-      ...this.iife.get().settings,
+    this.iife.jsOnFhir().settings = {
+      ...this.iife.jsOnFhir().settings,
       userId: '',
       codeVerifier: '',
       codeChallenge: '',
       state: ''
     };
-    this.iife.get().auth = {
+    this.iife.jsOnFhir().auth = {
       accessToken: '',
       expires: 0,
       type: '',
@@ -398,9 +412,9 @@ export class JSOnFhir {
    */
   private getApiConfig(): ApiConfig {
     return {
-      access_token: this.iife.get().auth.accessToken,
-      authorization_type: this.iife.get().auth.type,
-      base_url: this.iife.get().urls.service
+      access_token: this.iife.jsOnFhir().auth.accessToken,
+      authorization_type: this.iife.jsOnFhir().auth.type,
+      base_url: this.iife.jsOnFhir().urls.service
     };
   }
 
@@ -414,7 +428,7 @@ export class JSOnFhir {
   create(resource: Resource | string): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Create a resource on the fhir server by calling the create() function of apiMethods.
@@ -442,7 +456,7 @@ export class JSOnFhir {
   update(resource: Resource): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Reject promise if resource ID is undefined.
@@ -473,14 +487,17 @@ export class JSOnFhir {
    *            - rejected:   Error message.
    */
   search(resourceType: string, params?: {[key: string]: string}): Promise<Bundle> {
-    if (this.iife.get().settings.supportedResourceTypes.findIndex(r => r === resourceType) === -1) {
+    if (this.iife.jsOnFhir().settings.supportedResourceTypes.findIndex((r) => r === resourceType) === -1) {
       return Promise.reject(
-        'ResourceType "' + resourceType + '" is not supported by this server.'
-        + (resourceType.includes('/') ? ' For directly fetching a resource use getResource().' : ''));
+        'ResourceType "' +
+          resourceType +
+          '" is not supported by this server.' +
+          (resourceType.includes('/') ? ' For directly fetching a resource use getResource().' : '')
+      );
     }
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
@@ -509,7 +526,7 @@ export class JSOnFhir {
   getResource(resourceType: string, id: string): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Search for one specific or multiple resources on the fhir server by calling the search() function of apiMethods.
@@ -549,7 +566,7 @@ export class JSOnFhir {
   ): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
-      if (!(this.isLoggedIn() || this.iife.get().settings.noAuth)) {
+      if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {
         reject(new Error('User not logged in.'));
       }
       // Reject promise if resourceInstance (resourceId) but no resourceType is provided.
@@ -565,38 +582,31 @@ export class JSOnFhir {
           paramUrl += encodeURI(params);
         } else {
           Object.keys(params).forEach((key, index) => {
-            paramUrl += index === 0
-              ? key + '=' + encodeURI(params[key])
-              : '&' + (key + '=' + encodeURI(params[key]));
+            paramUrl += index === 0 ? key + '=' + encodeURI(params[key]) : '&' + (key + '=' + encodeURI(params[key]));
           });
         }
       }
       // Set '/' prefix to resourceType and resourceId if they exist. If they don't exist, set them both to ''.
-      resourceType = resourceType
-        ? '/' + resourceType
-        : '';
-      resourceId = resourceId
-        ? '/' + resourceId
-        : '';
+      resourceType = resourceType ? '/' + resourceType : '';
+      resourceId = resourceId ? '/' + resourceId : '';
       // Perform operation on fhir server by using apiCall function from @i4mi/fhir_r4.
       apiCall({
-        url: this.iife.get().urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
+        url: this.iife.jsOnFhir().urls.service + resourceType + resourceId + '/$' + operation + paramUrl,
         method: httpMethod,
         headers: {
-          'Content-Type': 'application/fhir+json;' + ((this.iife.get().settings.fhirVersion && this.iife.get().settings.fhirVersion.length > 0)
-                                                        ? ' fhirVersion=' + this.iife.get().settings.fhirVersion
-                                                        : ''),
-          'Authorization': 'Bearer ' + this.getAccessToken()
+          'Content-Type':
+            'application/fhir+json;' +
+            (this.iife.jsOnFhir().settings.fhirVersion && this.iife.jsOnFhir().settings.fhirVersion.length > 0
+              ? ' fhirVersion=' + this.iife.jsOnFhir().settings.fhirVersion
+              : ''),
+          Authorization: 'Bearer ' + this.getAccessToken()
         },
         jsonBody: true,
         payload: payload,
         jsonEncoded: typeof payload !== 'string'
       })
         .then((response) => {
-          resolve(typeof response === 'string'
-              ? JSON.parse(response).body
-              : response.body
-          );
+          resolve(typeof response === 'string' ? JSON.parse(response).body : response.body);
         })
         .catch((error) => {
           reject(new Error(error.status + ' ' + error.message));
@@ -610,7 +620,7 @@ export class JSOnFhir {
    */
   setLanguage(lang: string): void {
     if (lang.length === 2) {
-      this.iife.get().settings.language = lang.toLowerCase();
+      this.iife.jsOnFhir().settings.language = lang.toLowerCase();
       this.persist(this.storageKey);
     } else {
       throw new Error('The supplied language code is not a two-char string.');
@@ -622,7 +632,7 @@ export class JSOnFhir {
    * @param conformanceUrl The new conformance statement URL.
    */
   setConformanceUrl(conformanceUrl: string): void {
-    this.iife.get().urls.conformance = conformanceUrl;
+    this.iife.jsOnFhir().urls.conformance = conformanceUrl;
     this.persist(this.storageKey);
   }
 
@@ -631,30 +641,32 @@ export class JSOnFhir {
    * @param scope The scope as string.
    */
   setScope(scope: string): void {
-    this.iife.get().settings.scope = scope;
+    this.iife.jsOnFhir().settings.scope = scope;
     this.persist(this.storageKey);
   }
 
   /**
-  * Returns the resource id of the Patient or Practitioner resource of the logged in user
-  * @return       the Patient Resource ID as a string, if logged in
-  * @return       undefined if not logged in
-  * @deprecated   use getUserId() instead
-  */
+   * Returns the resource id of the Patient or Practitioner resource of the logged in user
+   * @return       the Patient Resource ID as a string, if logged in
+   * @return       undefined if not logged in
+   * @deprecated   use getUserId() instead
+   */
   getPatient() {
-    console.warn('js-on-fhir: getPatient() is deprecated since V1.0.0 and will be removed in a later versions.\nUse getUserId() instead.');
+    console.warn(
+      'js-on-fhir: getPatient() is deprecated since V1.0.0 and will be removed in a later versions.\nUse getUserId() instead.'
+    );
     return this.getUserId();
   }
 
   /**
-  * Returns the resource id of the of the logged in user. With this id, you can then fetch the
-  * Patient (for normal user) or Practitioner (for health professionals or researcher).
-  * @return       the Patient Resource ID as a string, if logged in
-  *               undefined if not logged in
-  */
+   * Returns the resource id of the of the logged in user. With this id, you can then fetch the
+   * Patient (for normal user) or Practitioner (for health professionals or researcher).
+   * @return       the Patient Resource ID as a string, if logged in
+   *               undefined if not logged in
+   */
   getUserId() {
-    if(this.iife.get().settings.userId && this.iife.get().settings.userId !== ''){
-      return this.iife.get().settings.userId;
+    if (this.iife.jsOnFhir().settings.userId && this.iife.jsOnFhir().settings.userId !== '') {
+      return this.iife.jsOnFhir().settings.userId;
     } else {
       return undefined;
     }
@@ -668,8 +680,8 @@ export class JSOnFhir {
    */
   generateState(): string {
     return encodeURIComponent(forge.util.encode64(forge.random.getBytesSync(128)))
-    .replace(/%/g, '')
-    .substring(0,128);
+      .replace(/%/g, '')
+      .substring(0, 128);
   }
 
   /**
@@ -681,8 +693,8 @@ export class JSOnFhir {
    */
   private generateCodeVerifier(): string {
     return encodeURIComponent(forge.util.encode64(forge.random.getBytesSync(128)))
-    .replace(/%/g, '')
-    .substring(0,128);
+      .replace(/%/g, '')
+      .substring(0, 128);
   }
 
   /**
@@ -692,9 +704,10 @@ export class JSOnFhir {
    * @returns code challenge (hashed and Base64 encoded code verifier).
    */
   private generateCodeChallenge(codeVerifier: string): string {
-    return forge.util.encode64(forge.util.hexToBytes(forge.md.sha256.create().update(forge.util.decodeUtf8(codeVerifier))
-      .digest()
-      .toHex()))
+    return forge.util
+      .encode64(
+        forge.util.hexToBytes(forge.md.sha256.create().update(forge.util.decodeUtf8(codeVerifier)).digest().toHex())
+      )
       .replace(/\+/g, '-')
       .replace(/\//g, '_')
       .replace(/=+$/, '');
@@ -710,14 +723,19 @@ export class JSOnFhir {
   private fetchConformanceStatement(): Promise<ApiCallResponse> {
     return new Promise((resolve, reject) => {
       // Set the conformance endpoint URL.
-      const cfUrl = typeof this.iife.get().urls.conformance !== 'undefined' ? this.iife.get().urls.conformance : this.iife.get().urls.service + '/metadata';
+      const cfUrl =
+        typeof this.iife.jsOnFhir().urls.conformance !== 'undefined'
+          ? this.iife.jsOnFhir().urls.conformance
+          : this.iife.jsOnFhir().urls.service + '/metadata';
       // Make request to the conformance endpoint using apiCall function from @i4mi/fhir_r4.
       apiCall({
         url: cfUrl,
         headers: {
-          'Content-Type': 'application/fhir+json;' + ((this.iife.get().settings.fhirVersion && this.iife.get().settings.fhirVersion.length > 0)
-                                                        ? ' fhirVersion=' + this.iife.get().settings.fhirVersion
-                                                        : '')
+          'Content-Type':
+            'application/fhir+json;' +
+            (this.iife.jsOnFhir().settings.fhirVersion && this.iife.jsOnFhir().settings.fhirVersion.length > 0
+              ? ' fhirVersion=' + this.iife.jsOnFhir().settings.fhirVersion
+              : '')
         },
         method: HttpMethod.GET
       })
@@ -741,8 +759,8 @@ export class JSOnFhir {
    * @returns access Token
    */
   getAccessToken(): string {
-    return this.iife.get().auth && this.iife.get().auth.accessToken
-      ? this.iife.get().auth.accessToken
+    return this.iife.jsOnFhir().auth && this.iife.jsOnFhir().auth.accessToken
+      ? this.iife.jsOnFhir().auth.accessToken
       : undefined;
   }
 
@@ -753,8 +771,8 @@ export class JSOnFhir {
    *                Supported versions: STU3 (3.0.2), R4 (4.0.1), R4B (4.3.0), R5 (5.0.0)
    */
   changeFhirVersion(version: FHIR_VERSION): void {
-    this.iife.get().settings.fhirVersion = version;
-    this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + version); 
+    this.iife.jsOnFhir().settings.fhirVersion = version;
+    this.apiMethods.differentiateContentType('application/fhir+json;fhirVersion=' + version);
   }
 
   /**
@@ -763,10 +781,10 @@ export class JSOnFhir {
    */
   private handleConformanceStatementResponse(response: ApiCallResponse): void {
     response.body = JSON.parse(response.body);
-    this.iife.get().urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
-    this.iife.get().urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
-    this.iife.get().settings.supportedResourceTypes = response.body.rest['0'].resource.map(r => r.type);
-    this.iife.get().settings.fhirVersion = response.body.fhirVersion;
+    this.iife.jsOnFhir().urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
+    this.iife.jsOnFhir().urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
+    this.iife.jsOnFhir().settings.supportedResourceTypes = response.body.rest['0'].resource.map((r) => r.type);
+    this.iife.jsOnFhir().settings.fhirVersion = response.body.fhirVersion;
     this.persist(this.storageKey);
   }
 
@@ -775,11 +793,11 @@ export class JSOnFhir {
    * @param response Response of the access token request.
    */
   private handleTokenResponse(response: ApiCallResponse) {
-    this.iife.get().auth.accessToken = response.body.access_token;
-    this.iife.get().auth.expires = Date.now() + 1000 * response.body.expires_in;
-    this.iife.get().auth.type = response.body.token_type;
-    this.iife.get().auth.refreshToken = response.body.refresh_token;
-    this.iife.get().settings.userId = response.body.patient;
+    this.iife.jsOnFhir().auth.accessToken = response.body.access_token;
+    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * response.body.expires_in;
+    this.iife.jsOnFhir().auth.type = response.body.token_type;
+    this.iife.jsOnFhir().auth.refreshToken = response.body.refresh_token;
+    this.iife.jsOnFhir().settings.userId = response.body.patient;
     this.persist(this.storageKey);
   }
 
@@ -795,8 +813,8 @@ export class JSOnFhir {
    * the JSOnFhir object after a page reload (e.g. after the authenticate() function was called).
    */
   private persist(key: string): void {
-    if(!key) throw new Error('Can not persist without key');
-    const toStore: StorageObject = this.iife.get()
+    if (!key) throw new Error('Can not persist without key');
+    const toStore: StorageObject = this.iife.jsOnFhir();
     sessionStorage.setItem(
       key,
       forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))))
@@ -806,7 +824,7 @@ export class JSOnFhir {
   private getFromStorage(key: string): StorageObject | null {
     const fromStorage = sessionStorage.getItem(key);
     return fromStorage
-      ? JSON.parse(decodeURIComponent(forge.util.encodeUtf8(forge.util.decode64(fromStorage)))) as StorageObject
+      ? (JSON.parse(decodeURIComponent(forge.util.encodeUtf8(forge.util.decode64(fromStorage)))) as StorageObject)
       : null;
   }
 
@@ -814,7 +832,7 @@ export class JSOnFhir {
    * Helper function to handle errors (e.g. expired access token).
    * @param error Error object.
    */
-  private handleError(error: {body: string, status: number}) {
+  private handleError(error: {body: string; status: number}) {
     if (error.body === 'Invalid token' || error.body === 'Expired token' || error.status === 401) {
       this.logout();
     }
