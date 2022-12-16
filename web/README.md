@@ -1,4 +1,4 @@
-# @i4mi/js-on-fhir FHIR® library with OAuth 2.0 for web applications built with Javascript frameworks
+# @i4mi/js-on-fhir FHIR® library with OAuth 2.0 for web applications built with JavaScript frameworks
 
 ![][~license]
 ![][~issues]
@@ -9,7 +9,7 @@ This library handles the OAuth 2.0 authorization process, providing essential fu
 
 See below for [instructions](#2-vue) for using it with [Vue.js](https://vuejs.org/).
 
-For projects using the IONIC framework, you may consider the [Ionic](https://ionicframework.com/) wrapper library [@i4mi/ionic-on-fhir](https://www.npmjs.com/package/@i4mi/ionic-on-fhir).
+If you are updating from an earlier version of this library to 1.0.0 or higher, you may have to adapt some of your code. See the [list of breaking changes in chapter 6](#6-changeLog).
 
 ## Content
 - [1 Usage](#1-usage)
@@ -25,6 +25,7 @@ For projects using the IONIC framework, you may consider the [Ionic](https://ion
 - [4 Dev](#4-dev)
 - [5 Submit issues](#5-issues)
 - [6 Changelog](#6-changeLog)
+  - [6.1 Breaking changes in Version 1.0.0](#6-changeLog)
 
 <a name="1-usage"></a>
 
@@ -350,20 +351,19 @@ Create a new issue with the label ![][~web].
 <a name="6-changeLog"></a>
 ## 6 Changelog
 
-### Breaking changes in Version 1.0.0
+### 6.1 Breaking changes in Version 1.0.0
 - Different methods have now typed return values. In TypeScript projects, this may lead to errors (that are usually easy to fix, though).
 - The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. 
   - For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
 - The getPatient() method is deprecated and has been renamed to getUserId(), which is more descriptive (since it returns only the ID and not the whole resource, and can also return the Practitioner ID when logged in as Health Professional or Researcher).
 - The (undocumented) generateRandomState(length) method is no longer available. If you used it to create a prefilled registering link, you can instead use the authenticate() method and pass the prefilled fields as key/value pair.
 - Version 2.0.0 of `@i4mi/fhir_r4` is used, which has incompabilities to previous versions. You may have to update your project to Version 2.0.0 of `@i4mi/fhir_r4` when using TypeScript.
-- PKCE Code Challenge is used per default for the auth, which may cause problems if your server does not support PKCE. You can disable this behaviour by setting `disablePKCE` the option objects of the constructor to `true` (see [chapter 1.2.3](#1.2-import))
-- The way the data is stored in the session storage has changed. No action is needed in your application, but the user will have to log in again when you update your existing application to version 1.0.0
-- TODO: update release date in change log
+- PKCE Code Challenge is used per default for the auth, which may cause problems if your server does not support PKCE. You can disable this behaviour by setting `disablePKCE` in the option objects of the constructor to `true` (see [chapter 1.2.3](#1.2-import))
+- The way the data is stored in the session storage has changed. No action is needed in your application, but the user will have to log in again when you update your existing application to version 1.0.0.
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.0.0   | 2022-xx-xx | - Add ability to use PKCE extension.<br /> - Adjusted usage of session storage and added an IIFE for not exposing auth information to the parent application. This is for preventing saving things twice, and also for obscuring auth data (however, this is NOT an encription!) <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
+| 1.0.0   | 2022-12-16 | - Add ability to use PKCE extension.<br /> - Adjusted usage of session storage and added an IIFE for not exposing auth information to the parent application. This is for preventing saving things twice, and also for obscuring auth data (however, this is NOT an encription!) <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
 | 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
 | 0.2.3   | 2022-06-27 | - Fix bug for performOperation() not using the auth token.|

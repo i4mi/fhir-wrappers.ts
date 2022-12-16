@@ -123,7 +123,11 @@ export class JSOnFhir {
     serverUrl: string,
     clientId: string,
     redirectUrl: string,
-    options?: {doesNotNeedAuth?: boolean; disablePkce?: boolean; fhirVersion?: FHIR_VERSION}
+    options?: {
+      doesNotNeedAuth?: boolean; 
+      disablePkce?: boolean; 
+      fhirVersion?: FHIR_VERSION;
+    }
   ) {
     const storageKey = this.createStorageKey(serverUrl, clientId);
     if (!options) {
@@ -815,16 +819,13 @@ export class JSOnFhir {
   private persist(key: string): void {
     if (!key) throw new Error('Can not persist without key');
     const toStore: StorageObject = this.iife.jsOnFhir();
-    sessionStorage.setItem(
-      key,
-      forge.util.encode64(forge.util.decodeUtf8(encodeURIComponent(JSON.stringify(toStore))))
-    );
+    sessionStorage.setItem(key, JSON.stringify(toStore));
   }
 
   private getFromStorage(key: string): StorageObject | null {
     const fromStorage = sessionStorage.getItem(key);
     return fromStorage
-      ? (JSON.parse(decodeURIComponent(forge.util.encodeUtf8(forge.util.decode64(fromStorage)))) as StorageObject)
+      ? JSON.parse(fromStorage) as StorageObject
       : null;
   }
 
