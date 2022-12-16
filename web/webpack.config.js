@@ -22,21 +22,21 @@ var config = {
         extensions: ['.ts', '.tsx', '.js']
     },
     devtool: 'source-map',
-    optimization: {
-        minimizer: [
-            // we specify a custom UglifyJsPlugin here to get source maps in production
-            new UglifyJsPlugin({
-              cache: true,
-              parallel: true,
-              uglifyOptions: {
-                compress: false,
-                ecma: 6,
-                mangle: true
-              },
-              sourceMap: true
-            })
-          ]
-    },
+    // optimization: {
+    //     minimizer: [
+    //         // we specify a custom UglifyJsPlugin here to get source maps in production
+    //         new UglifyJsPlugin({
+    //           cache: true,
+    //           parallel: true,
+    //           uglifyOptions: {
+    //             compress: false,
+    //             ecma: 6,
+    //             mangle: true
+    //           },
+    //           sourceMap: true
+    //         })
+    //       ]
+    // },
     module: {
         rules: [{
             test: /\.tsx?$/,
