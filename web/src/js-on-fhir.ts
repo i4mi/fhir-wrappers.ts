@@ -429,7 +429,7 @@ export class JSOnFhir {
    *            - fulfilled:  Representation of fhir resource in JSON format.
    *            - rejected:   Error message.
    */
-  create(resource: Resource | string): Promise<Resource> {
+  create(resource: Resource): Promise<Resource> {
     return new Promise((resolve, reject) => {
       // Reject promise if user is not logged in and doesNotNeedAuth? was set to false in the constructor.
       if (!(this.isLoggedIn() || this.iife.jsOnFhir().settings.noAuth)) {

@@ -182,7 +182,6 @@ fhir.search('Observation', { date: 'ge1912-04-15' })
 
 ### 1.5.2 Create
 Creates a FHIR resource.
-*IMPORTANT:* Do not forget to set the resourceType key!
 ```javascript
 let myResource = {
   "resourceType": "Observation",
@@ -201,7 +200,7 @@ fhir.create(myResource)
 
 ### 1.5.3 Update
 Updates a FHIR resource.
-*IMPORTANT:* Do not forget that you need the resource.id for updating!
+*IMPORTANT:* The resource needs to have an id and meta.versionId for updating.
 ```javascript
 fhir.update(myResource)
 .then((response) => {
@@ -363,6 +362,9 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
+| 1.0.3   | 2026-02-06 | - Update dependencies. |
+| 1.0.2   | 2025-05-27 | - Update readme. |
+| 1.0.1   | 2025-05-26 | - Update dependencies. |
 | 1.0.0   | 2022-12-16 | - Add ability to use PKCE extension.<br /> - Adjusted usage of session storage and added an IIFE for not exposing auth information to the parent application. This is for preventing saving things twice, and also for obscuring auth data (however, this is NOT an encription!) <br /> - Adjusted constructor. <br /> - Added ability to have multiple jsOnFhir instances run in the same project (e.g. for different servers). <br /> - Remove deprecated processMessage() method.<br /> - Add changeFhirVersion() method.<br /> - Add getUserId() method.<br /> - Deprecate getPatient() method. <br /> - Fix errors in README and add descriptions regarding PKCE and constructor.<br /> - Link to the new demo app. |
 | 0.3.0   | 2022-11-07 | - Use @i4mi/fhir_r4 version 2.0.0.|
 | 0.2.4   | 2022-06-28 | - Use @i4mi/fhir_r4 version 1.1.1, because using 1.1.0 could cause bugs when using Vue.js with vite.|
