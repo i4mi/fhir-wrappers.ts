@@ -769,6 +769,33 @@ export class JSOnFhir {
   }
 
   /**
+   * Sets authentication details externally (e.g., from a native Capacitor or React Native OAuth flow).
+   * This bypasses the internal web-based sessionStorage and redirect flow.
+   * * @param accessToken The access token retrieved from your native secure storage
+   * @param patientId The patient ID / User ID
+   * @param refreshToken Optional refresh token
+   */
+  setExternalAuth(accessToken: string, patientId: string, refreshToken?: string): void {
+    this.iife.jsOnFhir().auth.accessToken = accessToken;
+    
+    if (refreshToken) {
+      this.iife.jsOnFhir().auth.refreshToken = refreshToken;
+    }
+    
+    this.iife.jsOnFhir().auth.type = 'Bearer';
+    
+    // Set a long expiry so isLoggedIn() returns true. 
+    // In an external auth setup, the parent mobile app is responsible for tracking 
+    // true expiration and refreshing the token natively.
+    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * 60 * 60 * 24; 
+    
+    this.iife.jsOnFhir().settings.userId = patientId;
+    
+    // Save state
+    this.persist(this.storageKey);
+  }
+
+  /**
    * Changes the FHIR version used to do the requests to the server.
    * Note that the available versions may be restricted on your server.
    * @param version The FHIR version to use. Support of versions can be restricted on the server used.
