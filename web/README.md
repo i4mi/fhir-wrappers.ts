@@ -21,6 +21,7 @@ If you are updating from an earlier version of this library to 1.0.0 or higher, 
 - [2 Using with Vue.js](#2-vue)
   - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
   - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
+  - [2.3 Using with Mobile Apps / Capacitor](#2.3-mobileApps)
 - [3 Demo app](#3-demoApp)
 - [4 Dev](#4-dev)
 - [5 Submit issues](#5-issues)
@@ -318,6 +319,35 @@ mounted(){ // mounted() is automatically executed every time your Vue component 
 /* ... */
 ```
 You then can call the `this.$fhir.authenticate()` method from anywhere in your project, which takes the user to the server's auth page and further to the defined *redirectUrl* (which is your `App.vue`), where the auth response is handled.
+
+<a name="2.3-mobileApps"></a>
+### 2.3 Using with Mobile Apps / Capacitor
+
+The built-in `authenticate()` and `handleAuthResponse()` methods rely on browser `sessionStorage` and `window.location.href` redirects. On mobile devices (iOS/Android) running Capacitor or Cordova, the OS may clear the WebView's memory when the system browser opens, causing the login to fail when the user returns to the app.
+
+For mobile apps, you should handle the OAuth 2.0 PKCE flow natively using plugins (e.g., `@capacitor/browser`, `@capacitor/app` and a secure keychain storage plugin like [capacitor-secure-storage-plugin](https://github.com/martinkasa/capacitor-secure-storage-plugin)). 
+
+Once your native app has successfully retrieved the tokens, you can inject them directly into your `JSOnFhir` instance using the `setExternalAuth` method. This allows you to use all of the library's FHIR fetching and updating methods without using its web-based login flow.
+
+```javascript
+import { JSOnFhir } from '@i4mi/js-on-fhir';
+// 1. Initialize the library normally
+const fhir = new JSOnFhir('[https://test.midata.coop](https://test.midata.coop)', 'my-client-id', 'my.custom.scheme:/');
+
+// 2. Perform your native OAuth login using Capacitor plugins...
+// const tokens = await myNativeLoginFlow();
+
+// 3. Inject the resulting tokens into the FHIR library
+fhir.setExternalAuth(
+  tokens.access_token, 
+  tokens.patient_id, 
+  tokens.refresh_token // optional
+);
+
+// You can now securely query the FHIR API
+fhir.search('Observation', { code: '41950-7' })
+  .then(res => console.log(res));
+```
 
 <a name="3-demoApp"></a>
 ## 3 Demo app
