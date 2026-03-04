@@ -769,13 +769,25 @@ export class JSOnFhir {
   }
 
   /**
+   * Fully initializes the library using external tokens and fetches server capabilities.
+   * This is the recommended entry point for Mobile/Capacitor apps.
+   */
+  async initExternalAuth(accessToken: string, patientId: string, refreshToken?: string): Promise<void> {
+    // 1. Set the tokens synchronously
+    this.setExternalAuth(accessToken, patientId, refreshToken);
+    
+    // 2. Fetch the metadata asynchronously so the library knows what is supported
+    await this.fetchConformanceStatement();
+  }
+
+  /**
    * Sets authentication details externally (e.g., from a native Capacitor or React Native OAuth flow).
    * This bypasses the internal web-based sessionStorage and redirect flow.
    * * @param accessToken The access token retrieved from your native secure storage
    * @param patientId The patient ID / User ID
    * @param refreshToken Optional refresh token
    */
-  setExternalAuth(accessToken: string, patientId: string, refreshToken?: string): void {
+  private setExternalAuth(accessToken: string, patientId: string, refreshToken?: string): void {
     this.iife.jsOnFhir().auth.accessToken = accessToken;
     
     if (refreshToken) {
