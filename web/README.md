@@ -327,18 +327,20 @@ The built-in `authenticate()` and `handleAuthResponse()` methods rely on browser
 
 For mobile apps, you should handle the OAuth 2.0 PKCE flow natively using plugins (e.g., `@capacitor/browser`, `@capacitor/app` and a secure keychain storage plugin like [capacitor-secure-storage-plugin](https://github.com/martinkasa/capacitor-secure-storage-plugin)). 
 
-Once your native app has successfully retrieved the tokens, you can inject them directly into your `JSOnFhir` instance using the `setExternalAuth` method. This allows you to use all of the library's FHIR fetching and updating methods without using its web-based login flow.
+Once your native app has successfully retrieved the tokens, you can initialize your `JSOnFhir` instance using the `initExternalAuth` method. This method injects the tokens securely and automatically fetches the server's conformance statement, allowing you to use all of the library's FHIR fetching and updating methods without its web-based login flow.
 
 ```javascript
 import { JSOnFhir } from '@i4mi/js-on-fhir';
+
 // 1. Initialize the library normally
 const fhir = new JSOnFhir('[https://test.midata.coop](https://test.midata.coop)', 'my-client-id', 'my.custom.scheme:/');
 
 // 2. Perform your native OAuth login using Capacitor plugins...
 // const tokens = await myNativeLoginFlow();
 
-// 3. Inject the resulting tokens into the FHIR library
-fhir.setExternalAuth(
+// 3. Initialize the FHIR library with your native tokens
+// This injects the auth state AND fetches the server metadata asynchronously
+await fhir.initExternalAuth(
   tokens.access_token, 
   tokens.patient_id, 
   tokens.refresh_token // optional
