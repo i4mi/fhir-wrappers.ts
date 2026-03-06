@@ -326,7 +326,7 @@ export class JSOnFhir {
         }).then((response) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
-            this.handleTokenResponse(response);
+            this.handleTokenResponse(response.body);
             resolve(response.body);
           } else {
             reject(new Error(response.status + ' ' + response.message));
@@ -367,7 +367,7 @@ export class JSOnFhir {
         }).then((response: ApiCallResponse) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
-            this.handleTokenResponse(response);
+            this.handleTokenResponse(response.body);
             resolve(response.body);
           } else {
             reject(new Error(response.status + ' ' + response.message));
@@ -771,40 +771,30 @@ export class JSOnFhir {
   /**
    * Fully initializes the library using external tokens and fetches server capabilities.
    * This is the recommended entry point for Mobile/Capacitor apps.
+   * @param authInfo  Partial AuthResponse, containing at least:
+   *    - access_token: the access token
+   *    - expires_in:   token expiration time in milliseconds
+   *    - patientID:    the patient ID / User ID
+   * @returns A promise that
+   *    - resolves to void
+   *    - rejects with an error message if the properties named above are not provided
    */
-  async initExternalAuth(accessToken: string, patientId: string, refreshToken?: string): Promise<void> {
-    // 1. Set the tokens synchronously
-    this.setExternalAuth(accessToken, patientId, refreshToken);
-    
-    // 2. Fetch the metadata asynchronously so the library knows what is supported
-    await this.fetchConformanceStatement();
-  }
-
-  /**
-   * Sets authentication details externally (e.g., from a native Capacitor or React Native OAuth flow).
-   * This bypasses the internal web-based sessionStorage and redirect flow.
-   * * @param accessToken The access token retrieved from your native secure storage
-   * @param patientId The patient ID / User ID
-   * @param refreshToken Optional refresh token
-   */
-  private setExternalAuth(accessToken: string, patientId: string, refreshToken?: string): void {
-    this.iife.jsOnFhir().auth.accessToken = accessToken;
-    
-    if (refreshToken) {
-      this.iife.jsOnFhir().auth.refreshToken = refreshToken;
+  initExternalAuth(authInfo: Partial<AuthResponse>): Promise<void> {
+    if (!authInfo.access_token || !authInfo.patient || !authInfo.expires_in) {
+      return Promise.reject('Access token, patient ID, and expiration time are required for external authentication.');
     }
+
+    this.handleTokenResponse({
+      access_token: authInfo.access_token,
+      expires_in: authInfo.expires_in,
+      patient: authInfo.patient,
+      token_type: authInfo.token_type || 'Bearer',
+      state: authInfo.state || '',
+      scope: authInfo.scope || '',
+      refresh_token: authInfo.refresh_token || ''
+    });
     
-    this.iife.jsOnFhir().auth.type = 'Bearer';
-    
-    // Set a long expiry so isLoggedIn() returns true. 
-    // In an external auth setup, the parent mobile app is responsible for tracking 
-    // true expiration and refreshing the token natively.
-    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * 60 * 60 * 24; 
-    
-    this.iife.jsOnFhir().settings.userId = patientId;
-    
-    // Save state
-    this.persist(this.storageKey);
+    return this.fetchConformanceStatement().then(() => void 0);
   }
 
   /**
@@ -835,12 +825,12 @@ export class JSOnFhir {
    * Handles the token endpoint response by saving the relevant data from the access token request.
    * @param response Response of the access token request.
    */
-  private handleTokenResponse(response: ApiCallResponse) {
-    this.iife.jsOnFhir().auth.accessToken = response.body.access_token;
-    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * response.body.expires_in;
-    this.iife.jsOnFhir().auth.type = response.body.token_type;
-    this.iife.jsOnFhir().auth.refreshToken = response.body.refresh_token;
-    this.iife.jsOnFhir().settings.userId = response.body.patient;
+  private handleTokenResponse(response: AuthResponse) {
+    this.iife.jsOnFhir().auth.accessToken = response.access_token;
+    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * response.expires_in;
+    this.iife.jsOnFhir().auth.type = response.token_type || 'Bearer';
+    this.iife.jsOnFhir().auth.refreshToken = response.refresh_token;
+    this.iife.jsOnFhir().settings.userId = response.patient;
     this.persist(this.storageKey);
   }
 
