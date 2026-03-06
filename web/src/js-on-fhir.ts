@@ -773,7 +773,7 @@ export class JSOnFhir {
    * This is the recommended entry point for Mobile/Capacitor apps.
    * @param authInfo  Partial AuthResponse, containing at least:
    *    - access_token: the access token
-   *    - expires_in:   token expiration time in milliseconds
+   *    - expires_in:   token expiration time in seconds
    *    - patientID:    the patient ID / User ID
    * @returns A promise that
    *    - resolves to void
