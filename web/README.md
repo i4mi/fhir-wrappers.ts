@@ -21,7 +21,6 @@ If you are updating from an earlier version of this library to 1.0.0 or higher, 
 - [2 Using with Vue.js](#2-vue)
   - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
   - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
-- [3 Using with Mobile Apps / Capacitor](#3-mobileApps)
 - [4 Demo app](#4-demoApp)
 - [5 Dev](#5-dev)
 - [6 Submit issues](#6-issues)
