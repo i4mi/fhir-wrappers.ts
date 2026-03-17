@@ -60,7 +60,7 @@ const fhir = new JSOnFhir('serverUrl', 'clientId', 'redirectUrl');
 
 where the parameters correspond to:
 
-- _serverUrl_: The URL of the FHIR server you want to communicate with.
+- _serverUrl_: The BASE URL of the FHIR server you want to communicate with (the base url does not include the trailing `/fhir/`)
 - _clientId_: The ID of your FHIR application as registered with the FHIR server.
 - _redirectUrl_: The URL the server can talk back to your app during the auth process. When testing locally, this may look like `http://localhost:8080` or similar. The page loaded from this exact URL must call the `handleAuthResponse()` function (see below). Also mind that the _redirectUrl_ may have to be registered server-side for security reasons.
 - _options_: Optional parameter. Options you want to pass as an object literal to the constructor for configuring the jsOnFhir object.
@@ -405,7 +405,8 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
-| 1.1.0   | 2026-03-12 | - Added initExternalAuth method to allow auth flow for mobile devices.  |
+| 1.1.1   | 2026-03-17 | - Fix bug: Load capability statement for servers without authentication.|
+| 1.1.0   | 2026-03-12 | - Added initExternalAuth method to allow auth flow for mobile devices.|
 | 1.0.3   | 2026-02-06 | - Update dependencies. |
 | 1.0.2   | 2025-05-27 | - Update readme. |
 | 1.0.1   | 2025-05-26 | - Update dependencies. |

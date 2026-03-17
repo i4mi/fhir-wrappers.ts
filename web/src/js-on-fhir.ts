@@ -177,6 +177,11 @@ export class JSOnFhir {
     this.iife.initialize(persisted);
     this.storageKey = storageKey;
     this.persist(storageKey);
+
+    // when we dont have the authentication flow, we have to fetch the conformance statement anyways
+    if (options.doesNotNeedAuth) {
+      this.fetchConformanceStatement();
+    }
   }
 
   /**
@@ -524,7 +529,7 @@ export class JSOnFhir {
    * @param resourceType  ResourceType of the resource.
    * @param id            The unique id of the resource.
    * @returns A promise:
-   *            - fulfilled:  Bundle of type searchset containing the fhir resource(s).
+   *            - fulfilled:  The fhir resource.
    *            - rejected:   Error message.
    */
   getResource(resourceType: string, id: string): Promise<Resource> {
@@ -813,11 +818,13 @@ export class JSOnFhir {
    * @param response Response of the conformance Request.
    */
   private handleConformanceStatementResponse(response: ApiCallResponse): void {
-    response.body = JSON.parse(response.body);
-    this.iife.jsOnFhir().urls.token = response.body.rest['0'].security.extension['0'].extension['0'].valueUri;
-    this.iife.jsOnFhir().urls.auth = response.body.rest['0'].security.extension['0'].extension['1'].valueUri;
-    this.iife.jsOnFhir().settings.supportedResourceTypes = response.body.rest['0'].resource.map((r) => r.type);
-    this.iife.jsOnFhir().settings.fhirVersion = response.body.fhirVersion;
+    const parsed = JSON.parse(response.body);
+    if (!this.iife.jsOnFhir().settings.noAuth) {
+      this.iife.jsOnFhir().urls.token = parsed.rest['0'].security.extension['0'].extension['0'].valueUri;
+      this.iife.jsOnFhir().urls.auth = parsed.rest['0'].security.extension['0'].extension['1'].valueUri;
+    }
+    this.iife.jsOnFhir().settings.supportedResourceTypes = parsed.rest['0'].resource.map((r) => r.type);
+    this.iife.jsOnFhir().settings.fhirVersion = parsed.fhirVersion;
     this.persist(this.storageKey);
   }
 

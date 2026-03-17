@@ -1,6 +1,6 @@
 {
     "name": "@i4mi/js-on-fhir",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "description": "A JavaScript wrapper for the I4MI FHIR library.",
     "main": "js-on-fhir/js-on-fhir.js",
     "type": "module",
@@ -21,7 +21,7 @@
         "url": "https://github.com/i4mi/fhir-wrappers.ts/issues"
     },
     "author": {
-        "name": "Gabriel Hess, Marko Miletic, Stefan Iseli @ Institute for Medical Informatics (I4MI) - Bern University of Applied Sciences (BFH)",
+        "name": "Gabriel Hess, Marko Miletic, Joshua Drewlow & Stefan Iseli @ Institute for Medical Informatics (I4MI) - Bern University of Applied Sciences (BFH)",
         "email": "medinf.i4mi@bfh.ch"
     },
     "license": "Apache-2.0",
