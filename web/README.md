@@ -9,7 +9,7 @@ This library handles the OAuth 2.0 authorization process, providing essential fu
 
 See below for [instructions](#2-vue) for using it with [Vue.js](https://vuejs.org/).
 
-If you are updating from an earlier version of this library to 1.0.0 or higher, you may have to adapt some of your code. See the [list of breaking changes in chapter 6](#6-changeLog).
+If you are updating from an earlier version of this library to 1.0.0 or higher, you may have to adapt some of your code. See the [list of breaking changes in chapter 7](#7-changeLog).
 
 ## Content
 - [1 Usage](#1-usage)
@@ -21,11 +21,11 @@ If you are updating from an earlier version of this library to 1.0.0 or higher, 
 - [2 Using with Vue.js](#2-vue)
   - [2.1 Making your jsOnFhir instance globally available](#2.1-globalFhir)
   - [2.2 Handle the two-step auth process](#2.2-twoStepAuth)
-- [3 Demo app](#3-demoApp)
-- [4 Dev](#4-dev)
-- [5 Submit issues](#5-issues)
-- [6 Changelog](#6-changeLog)
-  - [6.1 Breaking changes in Version 1.0.0](#6-changeLog)
+- [4 Demo app](#4-demoApp)
+- [5 Dev](#5-dev)
+- [6 Submit issues](#6-issues)
+- [7 Changelog](#7-changeLog)
+  - [7.1 Breaking changes in Version 1.0.0](#7-changeLog)
 
 <a name="1-usage"></a>
 
@@ -94,7 +94,6 @@ Before you can read or write to the FHIR server, you need to authenticate with O
 Strictly speaking this plugin can't completely handle the whole OAuth 2.0 procedure. It provides necessary client side functionality, but there are still dependencies which arise from the auth server and have to be handled by the latter.
 
 <a name="1.3.1-authStart"></a>
-
 #### 1.3.1 Starting the auth process
 For triggering the auth process, you can call the `authenticate()` method from anywhere in your web application. When everything is configured properly, this opens a page for your user to log in with their credentials. The authorization server then validates the request to ensure that all required parameters are present and valid. If the request is valid, this page redirects to the _redirectUrl_ given before. This is known as the authorization response.
 
@@ -138,6 +137,49 @@ fhir.refreshAuth(refreshToken)
 
 The _refresh token_ is only valid once, so the `refreshAuth()` method also returns a promise with the server response, including a new _refresh token_. You can save this new _refresh token_ the same way as you did when calling `handleAuthResponse()`.
 
+### 1.3.5 Custom auth process
+You can also use a custom auth flow and set the auth information with `initExternalAuth(authInfo)` method. The authInfo object must at least contain an access_token, patient and expires_in, but can have all the properties described in the AuthInfo interface:
+```typescript
+export interface AuthResponse {
+  state: string;        // if everyting ok --> none
+  access_token: string; // The access token issued by the authorization server
+  token_type: 'Bearer'; // Fixed value: Bearer
+  expires_in: number;   // Lifetime of the access token in seconds, after which the token SHALL NOT be accepted by the resource server
+  scope: string;        // Scope of access authorized. Note that this can be different from the scopes requested by the app. ("user/*.*")
+  id_token?: string;    // Authenticated patient identity and user details, if requested
+  patient: string;      // field name for user id defined by SMART on FHIR
+  refresh_token: string;// Token that can be used to obtain a new access token,
+                        // using the same or a subset of the original authorization grants
+}
+```
+
+<a name="1.3.5.1-capacitor"></a>
+#### 1.3.5.1 Example with Capacitor
+The built-in `authenticate()` and `handleAuthResponse()` methods rely on browser `sessionStorage` and `window.location.href` redirects. On mobile devices (iOS/Android) running Capacitor or Cordova, the OS may clear the WebView's memory when the system browser opens, causing the login to fail when the user returns to the app.
+
+For mobile apps, you should handle the OAuth 2.0 PKCE flow natively using plugins (e.g., `@capacitor/browser`, `@capacitor/app` and a secure keychain storage plugin like [capacitor-secure-storage-plugin](https://github.com/martinkasa/capacitor-secure-storage-plugin)). 
+
+Once your native app has successfully retrieved the tokens, you can initialize your `JSOnFhir` instance using the `initExternalAuth` method. This method injects the tokens securely and automatically fetches the server's conformance statement, allowing you to use all of the library's FHIR fetching and updating methods without its web-based login flow.
+
+```javascript
+import { JSOnFhir } from '@i4mi/js-on-fhir';
+
+// 1. Initialize the library normally
+const fhir = new JSOnFhir('https://test.midata.coop', 'my-client-id', 'my.custom.scheme:/');
+
+// 2. Perform your native OAuth login using Capacitor plugins...
+// const authInfo = await myOwnLoginFlow();
+
+// 3. Initialize the FHIR library with your native authInfo
+// This injects the auth state and then fetches the server metadata
+await fhir.initExternalAuth(authInfo);
+);
+
+// You can now securely query the FHIR API
+fhir.search('Observation', { code: '41950-7' })
+  .then(res => console.log(res));
+```
+
 <a name="1.4-methods"></a>
 ## 1.4 Methods
 The following table describes all the methods intended for public use.
@@ -147,6 +189,7 @@ The following table describes all the methods intended for public use.
 |authenticate(*params?*)     |Starts the two-step authentication process (see [1.3.1](#1.3.1-authStart)).|*params*: (optional) additional params to be added to the auth URL, as key/value object.  |nothing<br/>(but redirects to the server's auth page) |
 |handleAuthResponse()|Handles the callback by the auth server. Has to be called when loading the page by the *redirectUrl* (see [1.2.1](#1.2.1-constructor)). The returned auth token is handled by the plugin and does not require further action.|none|A promise that resolves to <br/>a) the server's response when in the auth process and the request was successful (HTTP status 200 / 201)<br/>b) null when not in the auth process or <br/>c) rejects with an error message when in the auth process and an error occurred.|
 refreshAuth(*rToken*)  |Refreshes the authentication with a refresh token. The returned auth token is handled by the plugin and does not require further action.| *rToken*: a refresh token that was saved from an earlier server auth response.|A promise that <br/>resolves to the server's response (including a new refresh token) or <br/>rejects with an error message.|
+|initExternalAuth(*authInfo*)|Sets externaly aquired auth information (see [example](#1.3.5.1-capacitor))|*authInfo*: A partial AuthResponse object that contains at least *access_token*, *patient* and *expires_in*|A void promise.|
 isLoggedIn()          |Checks if an auth token is set and not expired.|none|*true* if a token is set and not yet expired, *false* if no token is set, or it is expired.|
 logout()              |Logs out the user by deleting all the authentication information.|none|nothing|
 create(*resource*)    |Creates a new resource on the FHIR server.|*resource*: the resource to create.|A promise that: <br/>resolves with the created resource if successful (HTTP status 200 / 201), or <br/>rejects with an error message.|
@@ -319,12 +362,12 @@ mounted(){ // mounted() is automatically executed every time your Vue component 
 ```
 You then can call the `this.$fhir.authenticate()` method from anywhere in your project, which takes the user to the server's auth page and further to the defined *redirectUrl* (which is your `App.vue`), where the auth response is handled.
 
-<a name="3-demoApp"></a>
-## 3 Demo app
+<a name="4-demoApp"></a>
+## 4 Demo app
 A demonstration of the most important functions and the implementation can be seen in a simple demo app available on [i4mi/midata-quasar-starter-app](https://github.com/i4mi/midata-quasar-starter-app). The demo app is built using the Quasar Framework, which uses Vue.js as an underlying technology and can be used as a starter template for your own project.
 
-<a name="4-dev"></a>
-## 4 Dev
+<a name="5-dev"></a>
+## 5 Dev
 If you want to contribute to the plugin, you can clone the repository from GitHub:  
 `git clone https://github.com/i4mi/fhir-wrappers.ts.git`
 
@@ -341,16 +384,16 @@ build
 publish: login with i4mi account  
 `npm publish --access public`
 
-<a name="5-issues"></a>
-## 5 Submit issues
+<a name="6-issues"></a>
+## 6 Submit issues
 Go to the global repo issue site on [GitHub](https://github.com/i4mi/fhir-wrappers.ts/issues).
 
 Create a new issue with the label ![][~web].
 
-<a name="6-changeLog"></a>
-## 6 Changelog
+<a name="7-changeLog"></a>
+## 7 Changelog
 
-### 6.1 Breaking changes in Version 1.0.0
+### 7.1 Breaking changes in Version 1.0.0
 - Different methods have now typed return values. In TypeScript projects, this may lead to errors (that are usually easy to fix, though).
 - The *search()* method now checks the resourceType parameter for validity (if supported by the server, according to the conformance statement). This means that the common practice for passing a whole search string to the method as resourceType does no longer work. Use the params parameter for search params instead. 
   - For fetching a resource with a known id, use the new *getResource()* method instead. The benefit of this is, that the *search()* method return value can be typed as a Bundle, and the *getResource()* return value can be typed as a Resource.
@@ -362,6 +405,7 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
+| 1.1.0   | 2026-03-12 | - Added initExternalAuth method to allow auth flow for mobile devices.  |
 | 1.0.3   | 2026-02-06 | - Update dependencies. |
 | 1.0.2   | 2025-05-27 | - Update readme. |
 | 1.0.1   | 2025-05-26 | - Update dependencies. |

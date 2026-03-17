@@ -326,7 +326,7 @@ export class JSOnFhir {
         }).then((response) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
-            this.handleTokenResponse(response);
+            this.handleTokenResponse(response.body);
             resolve(response.body);
           } else {
             reject(new Error(response.status + ' ' + response.message));
@@ -367,7 +367,7 @@ export class JSOnFhir {
         }).then((response: ApiCallResponse) => {
           if (response.status === 200) {
             // Handle the response of the token endpoint.
-            this.handleTokenResponse(response);
+            this.handleTokenResponse(response.body);
             resolve(response.body);
           } else {
             reject(new Error(response.status + ' ' + response.message));
@@ -769,6 +769,35 @@ export class JSOnFhir {
   }
 
   /**
+   * Fully initializes the library using external tokens and fetches server capabilities.
+   * This is the recommended entry point for Mobile/Capacitor apps.
+   * @param authInfo  Partial AuthResponse, containing at least:
+   *    - access_token: the access token
+   *    - expires_in:   token expiration time in seconds
+   *    - patientID:    the patient ID / User ID
+   * @returns A promise that
+   *    - resolves to void
+   *    - rejects with an error message if the properties named above are not provided
+   */
+  initExternalAuth(authInfo: Partial<AuthResponse>): Promise<void> {
+    if (!authInfo.access_token || !authInfo.patient || !authInfo.expires_in) {
+      return Promise.reject('Access token, patient ID, and expiration time are required for external authentication.');
+    }
+
+    this.handleTokenResponse({
+      access_token: authInfo.access_token,
+      expires_in: authInfo.expires_in,
+      patient: authInfo.patient,
+      token_type: authInfo.token_type || 'Bearer',
+      state: authInfo.state || '',
+      scope: authInfo.scope || '',
+      refresh_token: authInfo.refresh_token || ''
+    });
+    
+    return this.fetchConformanceStatement().then(() => void 0);
+  }
+
+  /**
    * Changes the FHIR version used to do the requests to the server.
    * Note that the available versions may be restricted on your server.
    * @param version The FHIR version to use. Support of versions can be restricted on the server used.
@@ -796,12 +825,12 @@ export class JSOnFhir {
    * Handles the token endpoint response by saving the relevant data from the access token request.
    * @param response Response of the access token request.
    */
-  private handleTokenResponse(response: ApiCallResponse) {
-    this.iife.jsOnFhir().auth.accessToken = response.body.access_token;
-    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * response.body.expires_in;
-    this.iife.jsOnFhir().auth.type = response.body.token_type;
-    this.iife.jsOnFhir().auth.refreshToken = response.body.refresh_token;
-    this.iife.jsOnFhir().settings.userId = response.body.patient;
+  private handleTokenResponse(response: AuthResponse) {
+    this.iife.jsOnFhir().auth.accessToken = response.access_token;
+    this.iife.jsOnFhir().auth.expires = Date.now() + 1000 * response.expires_in;
+    this.iife.jsOnFhir().auth.type = response.token_type || 'Bearer';
+    this.iife.jsOnFhir().auth.refreshToken = response.refresh_token;
+    this.iife.jsOnFhir().settings.userId = response.patient;
     this.persist(this.storageKey);
   }
 
