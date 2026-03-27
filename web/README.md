@@ -405,6 +405,7 @@ Create a new issue with the label ![][~web].
 
 | Version | Date       | Changes      |
 | ---     | ---        | ---          |
+| 1.1.2   | 2026-03-27 | - Update node-forge because of high severity vulnerability.|
 | 1.1.1   | 2026-03-17 | - Fix bug: Load capability statement for servers without authentication.|
 | 1.1.0   | 2026-03-12 | - Added initExternalAuth method to allow auth flow for mobile devices.|
 | 1.0.3   | 2026-02-06 | - Update dependencies. |
